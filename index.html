@@ -91,7 +91,7 @@ th,td { padding:10px; border-bottom:1px solid #eee; }
 
 <script>
 // ✅ URL ที่ถูกต้อง (จากที่คุณส่งมา)
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw16TiZwiyYJOvrtpwZfhKt8Jb_UZWz08suI671Do1MUfIIqrOmH9mic2RslTO5DTg2/exec';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxlC36QoUV37QvM6fazvGOlf5daaHrmdVTjQuHqpRnX_kTOFt7q3JbjwZ7H-rHBM00/exec';
 
 // ===== PRODUCT LIST SYSTEM =====
 let PRODUCT_MAP = {};
@@ -149,7 +149,7 @@ async function processBarcode(code=null){
       // สลับสถานะ: ถ้าล่าสุด IN -> ต่อไปต้อง OUT, ถ้าล่าสุด OUT -> ต่อไปต้อง IN
       let action = (lastServerAction === 'IN') ? 'OUT' : 'IN'; 
 
-      // 2. บันทึกข้อมูลจริงลง Google Sheet
+// 2. บันทึกข้อมูลจริงลง Google Sheet
       fetch(SHEET_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -157,7 +157,8 @@ async function processBarcode(code=null){
               actionType: 'LOG', 
               barcode: raw,
               name: fullName,
-              action: action
+              action: action,
+              fixedCode: data.code // 🔥 เพิ่มบรรทัดนี้: ส่งรหัสจริง (05007) ที่เจอในระบบกลับไปบันทึก
           })
       });
 
@@ -289,5 +290,3 @@ saveAndRender();
 
 </body>
 </html>
-
-
