@@ -90,16 +90,15 @@ th,td { padding:10px; border-bottom:1px solid #eee; }
 </div>
 
 <script>
-// ✅ URL เดิมของคุณ
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxOZxjLbcIU3OvEXvYsTWplQqIutCfBI4Snzf0imJJEOnLnqk77x0-MiaKHY1-ig_u3/exec';
+// ✅ URL ที่ถูกต้อง (จากที่คุณส่งมา)
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzJyhD18g1hfQH7BPjnNo9fdHpyDY8INxs7Gwv3toMmwI4LN8ri4sh4Wm8mX67JqcI6/exec';
 
-// ===== PRODUCT LIST SYSTEM (ใช้ Key เดิม ประวัติไม่หายแน่นอน) =====
+// ===== PRODUCT LIST SYSTEM =====
 let PRODUCT_MAP = {};
 let logs = JSON.parse(localStorage.getItem('logs_team') || '[]');
 let itemStatus = JSON.parse(localStorage.getItem('item_status') || '{}');
 
 const barcodeInput = document.getElementById('barcode');
-const productNameInput = document.getElementById('productName');
 const stockEl = document.getElementById('stock');
 const feedbackEl = document.getElementById('scanFeedback');
 
@@ -111,7 +110,7 @@ barcodeInput.addEventListener('input', ()=>{
     if(barcodeInput.value.length > 5){
       processBarcode();
     }
-  }, 200); // รอ 0.2 วินาทีหลังจากหยุดพิมพ์ค่อยทำงาน
+  }, 200); 
 });
 
 // ===== MAIN FLOW =====
@@ -119,15 +118,20 @@ async function processBarcode(code=null){
   let raw = code || barcodeInput.value.replace('!','').trim();
   if(!raw) return;
 
+  // แยกรหัสสินค้า
   let productCode = raw.split('-')[0];
   productCode = productCode.split('_')[0];
 
-  // 1. เช็คสินค้า
   try {
+      // 1. ส่งทั้ง productCode และ raw (บาร์โค้ดเต็ม) ไปเช็คกับ Server
       const res = await fetch(SHEET_URL,{
         method:'POST',
         headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify({actionType:'GET_PRODUCT', code:productCode})
+        body:JSON.stringify({
+            actionType:'GET_PRODUCT', 
+            code:productCode,
+            fullBarcode: raw // เพิ่มบรรทัดนี้เพื่อส่งบาร์โค้ดเต็มไปเช็ค
+        })
       });
 
       const data = await res.json();
@@ -139,17 +143,15 @@ async function processBarcode(code=null){
       }
 
       const fullName = data.full_name;
-      let current = itemStatus[raw] || 'OUT';
-      let action = current === 'IN' ? 'OUT' : 'IN';
+      
+      // 🔥 จุดสำคัญ: ตัดสินใจจาก Server ไม่ใช่จาก LocalStorage ในเครื่อง
+      // ถ้า Server ไม่ส่งมา (หรือเป็นค่าว่าง) ให้ถือว่าเป็น OUT (คือของยังไม่เข้า/พร้อมเข้า)
+      let lastServerAction = data.last_action || 'OUT'; 
+      
+      // สลับสถานะ: ถ้าล่าสุด IN -> ต่อไปต้อง OUT, ถ้าล่าสุด OUT -> ต่อไปต้อง IN
+      let action = (lastServerAction === 'IN') ? 'OUT' : 'IN'; 
 
-      itemStatus[raw] = action;
-
-      // บันทึก History ลงเครื่อง (ใช้ตัวแปรเดิม ข้อมูลไม่หาย)
-      const record = { barcode:raw, name:fullName, action:action, time:Date.now() };
-      logs.push(record);
-
-      // ✅ ปรับปรุง: ส่งข้อมูลเข้า Sheet แบบปลอดภัยกว่า (ลบ mode: no-cors ออก)
-      // ใส่ actionType: 'LOG' เผื่อไว้สำหรับการแยกแยะในอนาคต (Server ปัจจุบันรับได้อยู่แล้ว)
+      // 2. บันทึกข้อมูลจริงลง Google Sheet
       fetch(SHEET_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -159,21 +161,22 @@ async function processBarcode(code=null){
               name: fullName,
               action: action
           })
-      }).then(r => console.log('Log sent')).catch(e => console.error('Log error', e));
+      });
 
-      barcodeInput.value='';
+      // 3. แสดงผลในหน้าจอ (History)
+      const record = { barcode:raw, name:fullName, action:action, time:Date.now() };
+      logs.push(record);
+      
+      // อัปเดตสถานะในเครื่องด้วย
+      itemStatus[raw] = action; 
+      
       saveAndRender();
-      let balanceMsg = "";
-  if(data.balance !== undefined){
-     // คำนวณคร่าวๆ (ของเดิม + action ใหม่)
-     let newBalance = data.balance + (action === "IN" ? 1 : -1);
-     balanceMsg = ` [เหลือ: ${newBalance}]`;
-  }
-  
-  showScanFeedback(`${fullName} (${action})${balanceMsg}`);
+      barcodeInput.value='';
+      showScanFeedback(`${fullName} (${action})`);
 
   } catch (err) {
-      alert("⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ: " + err);
+      console.error(err);
+      alert("⚠️ เชื่อมต่อ Server ไม่ได้: " + err);
   }
 }
 
@@ -202,9 +205,9 @@ function clearData(){
 
 /* ===== Barcode Generator ===== */
 async function requestBarcodes(){
-  const name=genName.value.trim();
-  const prefix=genPrefix.value.trim();
-  const qty=parseInt(genQty.value);
+  const name=document.getElementById('genName').value.trim();
+  const prefix=document.getElementById('genPrefix').value.trim();
+  const qty=parseInt(document.getElementById('genQty').value);
   if(!name||!prefix||qty<=0) return alert('กรอกให้ครบ');
 
   const res=await fetch(SHEET_URL,{
@@ -219,6 +222,7 @@ async function requestBarcodes(){
 }
 
 function renderBarcodes(name,prefix,start,end){
+  const labels = document.getElementById('labels');
   labels.innerHTML='';
   let i=0;
   for(let n=start;n<=end;n++){
