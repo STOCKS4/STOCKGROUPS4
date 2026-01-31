@@ -9,7 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
 <style>
-/* ====== CSS เดิม (ไม่ยุ่ง UI) ====== */
+/* ====== CSS UI ปกติ ====== */
 body { font-family: 'Sarabun', sans-serif; background:#f1f5f9; padding:20px; color:#333; max-width: 900px; margin: 0 auto; }
 .card { background:#fff; padding:20px; border-radius:12px; margin-bottom:20px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
 input { width:100%; padding:14px; font-size:16px; margin-top:8px; border:1px solid #ccc; border-radius:8px; }
@@ -32,7 +32,7 @@ th,td { padding:10px; border-bottom:1px solid #eee; }
 
 #loading { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:999; text-align:center; padding-top:200px; font-size:24px; font-weight:bold; color:#2563eb; }
 
-/* ปรับปรุง CSS ส่วนกล้องเล็กน้อยให้มีปุ่มปิด */
+/* ปรับปรุง CSS ส่วนกล้อง */
 #cameraArea { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:1000; }
 #cameraStream { width:100%; height:100%; object-fit:cover; }
 .close-cam { position:absolute; top:20px; right:20px; background:red; color:white; padding:10px 20px; border-radius:30px; z-index:1001; font-weight:bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
@@ -41,6 +41,43 @@ th,td { padding:10px; border-bottom:1px solid #eee; }
 @keyframes scanMove { 0%{top:30%}50%{top:50%}100%{top:30%} }
 
 #scanFeedback { background:rgba(22,163,74,0.9); color:white; padding:15px; border-radius:10px; text-align:center; font-size:20px; font-weight:bold; opacity:0; transition:0.3s; margin-top:50px; }
+
+/* 🔥🔥🔥 เพิ่ม CSS สำหรับการปริ้น (แก้ปัญหาปริ้นติดทั้งหน้า) 🔥🔥🔥 */
+@media print {
+  /* 1. ซ่อนทุกอย่างในหน้าเว็บ */
+  body * {
+    visibility: hidden;
+  }
+
+  /* 2. บังคับให้เฉพาะส่วน #printArea และลูกน้องของมัน แสดงผลได้ */
+  #printArea, #printArea * {
+    visibility: visible;
+  }
+
+  /* 3. จัดตำแหน่งให้เริ่มที่มุมซ้ายบนของกระดาษ */
+  #printArea {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: white;
+    box-shadow: none;
+    border: none;
+  }
+
+  /* ตั้งค่าหน้ากระดาษ */
+  @page {
+    margin: 0.5cm;
+    size: auto;
+  }
+  
+  /* ให้พื้นหลังเป็นสีขาว */
+  body {
+    background: white;
+  }
+}
 </style>
 </head>
 
@@ -90,7 +127,7 @@ th,td { padding:10px; border-bottom:1px solid #eee; }
 </div>
 
 <script>
-// ✅ URL ที่ถูกต้อง (จากที่คุณส่งมา)
+// ✅ URL เดิมของคุณ
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxlC36QoUV37QvM6fazvGOlf5daaHrmdVTjQuHqpRnX_kTOFt7q3JbjwZ7H-rHBM00/exec';
 
 // ===== PRODUCT LIST SYSTEM =====
@@ -102,12 +139,11 @@ const barcodeInput = document.getElementById('barcode');
 const stockEl = document.getElementById('stock');
 const feedbackEl = document.getElementById('scanFeedback');
 
-// ✅ ปรับปรุง: เพิ่ม Timeout กันยิงรัวเกินไป (Debounce)
-// ✅ ใช้อันนี้แทน: ทำงานเมื่อกด Enter เท่านั้น
+// ✅ ใช้ระบบ Enter (พิมพ์เสร็จกด Enter หรือให้เครื่องสแกนกดให้)
 barcodeInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
-     e.preventDefault(); // กันหน้าเว็บรีเฟรช
-     processBarcode();   // เริ่มทำงานทันที
+     e.preventDefault(); 
+     processBarcode();   
   }
 });
 
@@ -121,14 +157,14 @@ async function processBarcode(code=null){
   productCode = productCode.split('_')[0];
 
   try {
-      // 1. ส่งทั้ง productCode และ raw (บาร์โค้ดเต็ม) ไปเช็คกับ Server
+      // 1. ส่งไปเช็คกับ Server
       const res = await fetch(SHEET_URL,{
         method:'POST',
         headers:{'Content-Type':'text/plain;charset=utf-8'},
         body:JSON.stringify({
             actionType:'GET_PRODUCT', 
             code:productCode,
-            fullBarcode: raw // เพิ่มบรรทัดนี้เพื่อส่งบาร์โค้ดเต็มไปเช็ค
+            fullBarcode: raw 
         })
       });
 
@@ -142,14 +178,11 @@ async function processBarcode(code=null){
 
       const fullName = data.full_name;
       
-      // 🔥 จุดสำคัญ: ตัดสินใจจาก Server ไม่ใช่จาก LocalStorage ในเครื่อง
-      // ถ้า Server ไม่ส่งมา (หรือเป็นค่าว่าง) ให้ถือว่าเป็น OUT (คือของยังไม่เข้า/พร้อมเข้า)
+      // ตัดสินใจ Action จาก Server
       let lastServerAction = data.last_action || 'OUT'; 
-      
-      // สลับสถานะ: ถ้าล่าสุด IN -> ต่อไปต้อง OUT, ถ้าล่าสุด OUT -> ต่อไปต้อง IN
       let action = (lastServerAction === 'IN') ? 'OUT' : 'IN'; 
 
-// 2. บันทึกข้อมูลจริงลง Google Sheet
+      // 2. บันทึกข้อมูล (ส่ง fixedCode กลับไปเพื่อให้ได้เลข 05007 ที่ถูกต้อง)
       fetch(SHEET_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -158,15 +191,14 @@ async function processBarcode(code=null){
               barcode: raw,
               name: fullName,
               action: action,
-              fixedCode: data.code // 🔥 เพิ่มบรรทัดนี้: ส่งรหัสจริง (05007) ที่เจอในระบบกลับไปบันทึก
+              fixedCode: data.code // ✅ สำคัญ: ใช้รหัสที่ Server ส่งมา (ที่มี 0 นำหน้า)
           })
       });
 
-      // 3. แสดงผลในหน้าจอ (History)
+      // 3. แสดงผล History
       const record = { barcode:raw, name:fullName, action:action, time:Date.now() };
       logs.push(record);
       
-      // อัปเดตสถานะในเครื่องด้วย
       itemStatus[raw] = action; 
       
       saveAndRender();
@@ -273,7 +305,6 @@ function startCamera(){
   });
 }
 
-// ✅ ปรับปรุง: ฟังก์ชันปิดกล้องสมบูรณ์
 function stopCamera(){ 
     Quagga.stop(); 
     document.getElementById('cameraArea').style.display='none'; 
