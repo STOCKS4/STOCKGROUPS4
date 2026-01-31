@@ -2,106 +2,71 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>S4 Professional Stock System</title>
+<title>S4 Professional Stock</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
 
 <style>
-/* ====== GLOBAL STYLE ====== */
-:root { --primary: #2563eb; --danger: #dc2626; --success: #16a34a; --bg: #f1f5f9; }
+/* CSS หลักเหมือนเดิม แต่ปรับจูนเรื่องการปริ้น */
+:root { --primary: #2563eb; --bg: #f1f5f9; }
 body { font-family: 'Sarabun', sans-serif; background: var(--bg); padding: 20px; color: #333; max-width: 800px; margin: 0 auto; }
-* { box-sizing: border-box; }
-
-/* Cards */
-.card { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
-.card-header { font-size: 18px; font-weight: bold; color: var(--primary); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-
-/* Forms */
-input, select { width: 100%; padding: 12px; font-size: 16px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 8px; transition: 0.2s; }
-input:focus { outline: none; border-color: var(--primary); ring: 2px var(--primary); }
-label { font-size: 14px; color: #64748b; font-weight: 600; margin-top: 10px; display: block; }
-
-/* Buttons */
-.btn-group { display: flex; gap: 10px; margin-top: 15px; }
-button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; color: white; }
+.card { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+input, select { width: 100%; padding: 12px; font-size: 16px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
+button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; margin-top:10px; }
 .btn-primary { background: var(--primary); }
 .btn-print { background: #334155; }
-.btn-cam { background: var(--success); width: auto; flex: none; padding: 0 20px; }
-.btn-clear { background: #fee2e2; color: var(--danger); font-size: 12px; padding: 5px 10px; flex: none; border-radius: 6px; }
-button:active { transform: scale(0.98); }
-
-/* Table */
+.btn-cam { background: #16a34a; width: auto; padding: 0 20px; }
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th { text-align: left; color: #64748b; font-size: 13px; padding: 8px; border-bottom: 2px solid #e2e8f0; }
-td { padding: 10px 8px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
-.badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
-.badge.in { background: #dcfce7; color: var(--success); }
-.badge.out { background: #fee2e2; color: var(--danger); }
+th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+.badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+.in { background: #dcfce7; color: #16a34a; }
+.out { background: #fee2e2; color: #dc2626; }
 
-/* Print Settings Area */
-.settings-box { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-bottom: 15px; }
-.row-input { display: flex; gap: 10px; }
-
-/* ====== BARCODE PREVIEW AREA ====== */
+/* พื้นที่แสดงบาร์โค้ด */
 .labels { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
 .label { 
     background: white; border: 1px solid #e2e8f0; border-radius: 8px; 
-    padding: 10px; text-align: center; overflow: hidden;
+    padding: 5px; text-align: center; 
     display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
-.label-name { font-weight: bold; font-size: 16px; color: #0f172a; margin-bottom: 2px; line-height: 1.2; }
-.label-code { font-family: 'Roboto Mono', monospace; font-size: 14px; color: #334155; margin-top: 2px; letter-spacing: 1px; }
-.label svg { display: block; max-width: 100%; height: auto; }
+.label-name { font-weight: bold; font-size: 16px; margin-bottom: 2px; line-height: 1.2; }
+.label-code { font-family: 'Roboto Mono', monospace; font-size: 14px; margin-top: 2px; font-weight: bold; }
+/* 🔥 บังคับให้ browser เรนเดอร์เส้นแบบ Pixel Perfect (ห้ามเบลอ) */
+.label svg { shape-rendering: crispEdges; max-width: 100%; height: auto; }
 
-/* Feedback & Camera */
-#scanFeedback { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 30px; font-weight: bold; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+#scanFeedback { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 30px; opacity: 0; transition: 0.3s; pointer-events: none; }
 #cameraArea { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; }
 #cameraStream { width: 100%; height: 100%; object-fit: cover; }
-.close-cam { position: absolute; top: 20px; right: 20px; background: rgba(255,0,0,0.8); color: white; z-index: 1001; border-radius: 50px; width: auto; }
 
-/* ====== PRINT MODE (หัวใจสำคัญ) ====== */
+/* Setting Box */
+.settings-box { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-bottom: 15px; }
+
+/* PRINT MODE */
 @media print {
     body * { visibility: hidden; }
     #printArea, #printArea * { visibility: visible; }
-    #printArea { position: absolute; top: 0; left: 0; width: 100%; margin: 0; padding: 0; background: white; box-shadow: none; border: none; }
-    
-    /* Reset Grid for Print */
+    #printArea { position: absolute; top: 0; left: 0; width: 100%; margin: 0; padding: 0; }
     .labels { display: block; }
-    .label { 
-        border: none !important; 
-        page-break-after: always; /* ตัดหน้าทุกดวง */
-        margin: 0 auto; 
-    }
-    
-    /* ตั้งค่าหน้ากระดาษให้ชิดขอบที่สุด */
+    .label { border: none !important; page-break-after: always; margin: 0 auto; }
     @page { margin: 0; size: auto; }
 }
 </style>
 </head>
 <body>
 
-<div style="text-align:center; margin-bottom:20px;">
-    <h2 style="margin:0; color:#1e293b;">📦 S4 Professional Stock</h2>
-    <span style="font-size:12px; color:#64748b;">Version 3.0 (Stable & Auto-Running)</span>
-</div>
+<h2 style="text-align:center;">📦 S4 Professional Stock</h2>
 
 <div class="card">
-    <div class="card-header">📍 จุดสแกนสินค้า</div>
     <div style="display:flex; gap:10px;">
-        <input id="barcode" placeholder="ยิงบาร์โค้ดที่นี่..." autofocus>
+        <input id="barcode" placeholder="ยิงบาร์โค้ด..." autofocus>
         <button class="btn-cam" onclick="startCamera()">📷</button>
     </div>
 </div>
 
 <div class="card">
-    <div class="card-header">
-        ⏳ ประวัติล่าสุด 
-        <button class="btn-clear" onclick="clearData()">ล้างประวัติ</button>
-    </div>
+    <h3>ประวัติล่าสุด <button onclick="clearData()" style="float:right; width:auto; font-size:12px; background:#fee2e2; color:red; padding:5px 10px;">ล้าง</button></h3>
     <table>
         <thead><tr><th>เวลา</th><th>รหัส</th><th>สถานะ</th></tr></thead>
         <tbody id="stock"></tbody>
@@ -109,38 +74,28 @@ td { padding: 10px 8px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
 </div>
 
 <div class="card">
-    <div class="card-header">🖨️ สร้างบาร์โค้ด (Auto-Run)</div>
+    <h3>🖨️ สร้างบาร์โค้ด (Auto-Run)</h3>
     
     <div class="settings-box">
-        <label>⚙️ ตั้งค่าขนาดกระดาษ (บันทึกอัตโนมัติ)</label>
-        <div class="row-input">
+        <label>⚙️ ตั้งค่ากระดาษ</label>
+        <div style="display:flex; gap:10px;">
             <select id="printMode" onchange="toggleSettings()">
                 <option value="Single">Thermal (สติ๊กเกอร์ม้วน)</option>
                 <option value="A4">A4 (กระดาษทั่วไป)</option>
             </select>
             <div id="sizeInputs" style="display:flex; gap:5px; flex:1;">
-                <input id="pWidth" type="number" placeholder="W" value="50">
-                <span style="align-self:center; font-size:12px;">x</span>
-                <input id="pHeight" type="number" placeholder="H" value="30">
-                <span style="align-self:center; font-size:12px;">mm</span>
+                <input id="pWidth" type="number" value="50"> <span style="align-self:center">x</span>
+                <input id="pHeight" type="number" value="30"> <span style="align-self:center">mm</span>
             </div>
         </div>
     </div>
 
-    <div class="row-input">
-        <div style="flex:2;">
-            <label>รหัสสินค้า (Key)</label>
-            <input id="genName" placeholder="เช่น 18802">
-        </div>
-        <div style="flex:1;">
-            <label>จำนวน</label>
-            <input id="genQty" type="number" value="10">
-        </div>
-    </div>
+    <input id="genName" placeholder="รหัสสินค้า เช่น 18802">
+    <input id="genQty" type="number" value="10">
 
-    <div class="btn-group">
-        <button class="btn-primary" onclick="requestBarcodes()">☁️ ขอเลข (Server)</button>
-        <button class="btn-print" onclick="window.print()">🖨️ ปริ้นทันที</button>
+    <div style="display:flex; gap:10px;">
+        <button class="btn-primary" onclick="requestBarcodes()">☁️ ขอเลข</button>
+        <button class="btn-print" onclick="window.print()">🖨️ ปริ้น</button>
     </div>
 </div>
 
@@ -149,254 +104,142 @@ td { padding: 10px 8px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
 </div>
 
 <div id="cameraArea">
-    <button class="close-cam" onclick="stopCamera()">❌ ปิดกล้อง</button>
+    <button onclick="stopCamera()" style="position:absolute; top:20px; right:20px; background:red; width:auto;">❌ ปิด</button>
     <div id="cameraStream"></div>
 </div>
 <div id="scanFeedback"></div>
 
 <script>
-// ================= CONFIGURATION =================
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxlC36QoUV37QvM6fazvGOlf5daaHrmdVTjQuHqpRnX_kTOFt7q3JbjwZ7H-rHBM00/exec'; // ลิงก์เดิมใช้ได้เลย
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxlC36QoUV37QvM6fazvGOlf5daaHrmdVTjQuHqpRnX_kTOFt7q3JbjwZ7H-rHBM00/exec';
 
-// ================= STATE MANAGEMENT =================
 let logs = JSON.parse(localStorage.getItem('logs_s4') || '[]');
-const els = {
-    barcode: document.getElementById('barcode'),
-    stock: document.getElementById('stock'),
-    labels: document.getElementById('labels'),
-    feedback: document.getElementById('scanFeedback'),
-    // Settings
-    mode: document.getElementById('printMode'),
-    w: document.getElementById('pWidth'),
-    h: document.getElementById('pHeight')
-};
+const els = { barcode: document.getElementById('barcode'), stock: document.getElementById('stock'), labels: document.getElementById('labels'), feedback: document.getElementById('scanFeedback') };
 
-// Load Saved Settings
-window.onload = () => {
-    if(localStorage.getItem('print_mode')) els.mode.value = localStorage.getItem('print_mode');
-    if(localStorage.getItem('print_w')) els.w.value = localStorage.getItem('print_w');
-    if(localStorage.getItem('print_h')) els.h.value = localStorage.getItem('print_h');
-    toggleSettings();
-    renderLogs();
-};
-
-function saveSettings(){
-    localStorage.setItem('print_mode', els.mode.value);
-    localStorage.setItem('print_w', els.w.value);
-    localStorage.setItem('print_h', els.h.value);
-}
+// Load Settings
+if(localStorage.getItem('print_w')) document.getElementById('pWidth').value = localStorage.getItem('print_w');
+if(localStorage.getItem('print_h')) document.getElementById('pHeight').value = localStorage.getItem('print_h');
 
 function toggleSettings(){
-    const isSingle = els.mode.value === 'Single';
+    const isSingle = document.getElementById('printMode').value === 'Single';
     document.getElementById('sizeInputs').style.visibility = isSingle ? 'visible' : 'hidden';
-    saveSettings();
+    localStorage.setItem('print_w', document.getElementById('pWidth').value);
+    localStorage.setItem('print_h', document.getElementById('pHeight').value);
 }
+document.getElementById('pWidth').addEventListener('input', toggleSettings);
+document.getElementById('pHeight').addEventListener('input', toggleSettings);
+toggleSettings();
 
-els.mode.addEventListener('change', toggleSettings);
-els.w.addEventListener('input', saveSettings);
-els.h.addEventListener('input', saveSettings);
-
-// ================= SCAN LOGIC =================
-els.barcode.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); processScan(); }
-});
+// SCAN PROCESS
+els.barcode.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); processScan(); } });
 
 async function processScan(code=null){
     let raw = code || els.barcode.value.replace(/!/g,'').trim();
     if(!raw) return;
 
-    // Logic: ตัดเอาเฉพาะรหัสสินค้าหลัก (18802-0001 -> 18802)
-    let productKey = raw.split('-')[0].split('_')[0];
+    // 🔥 LOGIC ใหม่: รองรับทั้งแบบมีขีดและไม่มีขีด (กันเหนียว)
+    // 18802001 -> ตัด 3 ตัวท้าย -> 18802
+    // 18802-001 -> ตัด -001 -> 18802
+    let productKey = raw.replace(/-/g, '').slice(0, -3); // ตัดเลขรัน 3 หลักท้ายออก
 
-    showFeedback('⏳ กำลังตรวจสอบ...', '#2563eb');
-    
     try {
         const res = await fetch(SHEET_URL, {
-            method: 'POST',
-            headers: {'Content-Type': 'text/plain;charset=utf-8'},
-            body: JSON.stringify({ actionType: 'GET_PRODUCT', code: productKey, fullBarcode: raw })
+            method: 'POST', body: JSON.stringify({ actionType: 'GET_PRODUCT', code: productKey, fullBarcode: raw })
         });
         const data = await res.json();
 
         if(data.status !== 'success'){
-            showFeedback('❌ ไม่พบสินค้า', '#dc2626');
-            new Audio('https://www.soundjay.com/buttons/sounds/button-10.mp3').play(); // Error Sound
-            els.barcode.value = '';
-            return;
+            showFeedback('❌ ไม่พบสินค้า', 'red'); els.barcode.value = ''; return;
         }
 
-        // Toggle Status
-        let lastAction = data.last_action || 'OUT';
-        let newAction = (lastAction === 'IN') ? 'OUT' : 'IN';
+        let action = (data.last_action === 'IN') ? 'OUT' : 'IN';
+        fetch(SHEET_URL, { method: 'POST', body: JSON.stringify({ actionType: 'LOG', barcode: raw, name: data.full_name, action: action, fixedCode: data.code }) });
 
-        // Log to Server
-        fetch(SHEET_URL, {
-            method: 'POST',
-            headers: {'Content-Type': 'text/plain;charset=utf-8'},
-            body: JSON.stringify({ 
-                actionType: 'LOG', 
-                barcode: raw, 
-                name: data.full_name, 
-                action: newAction, 
-                fixedCode: data.code // บังคับใช้รหัสที่มี 0 นำหน้าจาก Server
-            })
-        });
-
-        // Update UI
-        logs.unshift({ time: Date.now(), barcode: raw, name: data.full_name, action: newAction });
+        logs.unshift({ time: Date.now(), barcode: raw, name: data.full_name, action: action });
         if(logs.length > 20) logs.pop();
         localStorage.setItem('logs_s4', JSON.stringify(logs));
-        
         renderLogs();
         els.barcode.value = '';
-        showFeedback(`✅ ${newAction}: ${data.full_name}`, newAction==='IN'?'#16a34a':'#dc2626');
-
-    } catch (err) {
-        showFeedback('⚠️ Server Error', '#dc2626');
-        console.error(err);
-    }
+        showFeedback(`✅ ${action}: ${data.full_name}`, action==='IN'?'green':'red');
+    } catch (err) { alert('Server Error'); }
 }
 
 function renderLogs(){
     els.stock.innerHTML = logs.map(l => `
-        <tr>
-            <td>${new Date(l.time).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</td>
-            <td><strong>${l.barcode}</strong><br><small style="color:#64748b">${l.name}</small></td>
-            <td><span class="badge ${l.action.toLowerCase()}">${l.action}</span></td>
-        </tr>
+        <tr><td>${new Date(l.time).toLocaleTimeString('th-TH')}</td><td>${l.barcode}<br><small>${l.name}</small></td><td><span class="badge ${l.action.toLowerCase()}">${l.action}</span></td></tr>
     `).join('');
 }
+function clearData(){ if(confirm('ล้าง?')){ logs=[]; localStorage.removeItem('logs_s4'); renderLogs(); } }
+function showFeedback(text, color){ els.feedback.innerText = text; els.feedback.style.background = color; els.feedback.style.opacity = 1; setTimeout(() => els.feedback.style.opacity = 0, 1500); }
 
-function clearData(){
-    if(confirm('ล้างประวัติทั้งหมด?')){ logs=[]; localStorage.removeItem('logs_s4'); renderLogs(); }
-}
-
-function showFeedback(text, color){
-    els.feedback.innerText = text;
-    els.feedback.style.background = color;
-    els.feedback.style.opacity = 1;
-    setTimeout(() => els.feedback.style.opacity = 0, 2000);
-}
-
-// ================= GENERATE & PRINT ENGINE (The Pro Part) =================
+// GENERATE PROCESS
 async function requestBarcodes(){
     const name = document.getElementById('genName').value.trim();
     const qty = parseInt(document.getElementById('genQty').value);
-    
-    if(!name || qty <= 0) return alert('กรุณากรอกข้อมูลให้ครบ');
+    if(!name || qty <= 0) return alert('กรอกข้อมูลให้ครบ');
 
-    showFeedback('☁️ กำลังขอเลขจาก Server...', '#334155');
-
-    try {
-        const res = await fetch(SHEET_URL, {
-            method: 'POST',
-            headers: {'Content-Type': 'text/plain;charset=utf-8'},
-            // ส่งไปแค่ name กับ qty (Server จะจัดการ running number เอง)
-            body: JSON.stringify({ actionType: 'GENERATE', name: name, qty: qty })
-        });
-        const data = await res.json();
-        
-        if(data.status === 'success'){
-            generateLabels(name, data.start, data.end);
-            showFeedback('✅ สร้างบาร์โค้ดสำเร็จ', '#16a34a');
-        }
-    } catch (err) {
-        alert('เชื่อมต่อ Server ไม่ได้');
-    }
+    const res = await fetch(SHEET_URL, { method: 'POST', body: JSON.stringify({ actionType: 'GENERATE', name: name, qty: qty }) });
+    const data = await res.json();
+    if(data.status === 'success'){ generateLabels(name, data.start, data.end); }
 }
 
 function generateLabels(name, start, end){
     els.labels.innerHTML = '';
-    const mode = els.mode.value;
-    const w = els.w.value || 50;
-    const h = els.h.value || 30;
+    const mode = document.getElementById('printMode').value;
+    const w = document.getElementById('pWidth').value || 50;
+    const h = document.getElementById('pHeight').value || 30;
 
-    // Dynamic Style Injection for Print
-    const styleId = 'dynamic-print-style';
-    let oldStyle = document.getElementById(styleId);
-    if(oldStyle) oldStyle.remove();
-
+    // Inject CSS for Print
     const style = document.createElement('style');
-    style.id = styleId;
-
-    if(mode === 'Single'){
-        style.innerHTML = `@media print { 
-            @page { size: ${w}mm ${h}mm; margin: 0; } 
-            .label { width: ${w}mm; height: ${h}mm; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        }`;
-        els.labels.style.display = 'block'; // Block layout for thermal
-    } else {
-        style.innerHTML = `@media print { 
-            @page { size: A4; margin: 0.5cm; } 
-            .labels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-            .label { border: 1px dashed #ccc !important; height: auto; padding: 10px; }
-        }`;
-        els.labels.style.display = 'grid'; // Grid layout for A4
-    }
+    style.innerHTML = (mode === 'Single') 
+        ? `@media print { @page { size: ${w}mm ${h}mm; margin: 0; } .label { width: ${w}mm; height: ${h}mm; display: flex; flex-direction: column; justify-content: center; align-items: center; } }`
+        : `@media print { @page { size: A4; margin: 0.5cm; } .labels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; } .label { border: 1px dashed #ccc !important; height: auto; padding: 10px; } }`;
     document.head.appendChild(style);
 
-    // Loop Generate
     for(let i = start; i <= end; i++){
-        // 🔥 Format: NAME-0001! (4 digits padding)
-        const num = String(i).padStart(4, '0');
-        const fullCode = `${name}-${num}!`; // มี ! ปิดท้ายให้ Scanner ตัดจบ
+        // 🔥 FORMULA: ลดเลขรันเหลือ 3 หลัก และเอาขีดออก
+        // Human Readable: 18802-001 (มีขีดให้อ่านง่าย)
+        // Machine Code:   18802001! (ไม่มีขีด เพื่อประหยัดที่)
+        
+        const num = String(i).padStart(3, '0'); // เหลือ 3 หลัก (001)
+        const humanText = `${name}-${num}`;     // ข้อความที่ตาเห็น
+        const machineCode = `${name}${num}!`;   // รหัสที่เครื่องอ่าน (เอาขีดออก)
 
         const div = document.createElement('div');
         div.className = 'label';
-        
-        // Preview Size (On Screen)
-        if(mode === 'Single'){
-            div.style.width = `${w}mm`;
-            div.style.height = `${h}mm`;
-            div.style.margin = '0 auto 10px auto';
-            div.style.border = '1px solid #ddd';
-        }
+        if(mode === 'Single'){ div.style.width = `${w}mm`; div.style.height = `${h}mm`; }
 
-        // HTML Structure
         div.innerHTML = `
             <div class="label-name">${name}</div>
             <svg id="bc_${i}"></svg>
-            <div class="label-code">${fullCode}</div>
+            <div class="label-code">${humanText}</div>
         `;
         els.labels.appendChild(div);
 
-        // 🔥 BARCODE RENDERING LOGIC (The Fix) 🔥
-        // ไม่มีการ Scale แต่ใช้การคำนวณ Width ที่ปลอดภัย
-        // สำหรับกระดาษ 50mm, width=1.7 คือค่าที่ปลอดภัยที่สุดสำหรับตัวอักษรประมาณ 10-12 ตัว
-        
+        // 🔥 FIX: ใช้ Width: 2 (เต็มหน่วย) เพื่อความคมชัดสูงสุด
         try {
-            JsBarcode(`#bc_${i}`, fullCode, {
+            JsBarcode(`#bc_${i}`, machineCode, {
                 format: "CODE128",
-                width: 1.7,       // หนาพอให้อ่านออก แต่ไม่กว้างจนล้น
-                height: (mode === 'Single' ? (h * 0.5) : 40), // สูง 50% ของกระดาษ
-                displayValue: false, // เราเขียนเลขเองสวยกว่า
+                width: 2,           // ห้ามใช้ทศนิยมเด็ดขาด!
+                height: (mode === 'Single' ? (h * 0.5) : 35),
+                displayValue: false, 
                 margin: 0
             });
         } catch (e) {
-            div.innerHTML += '<small style="color:red">รหัสยาวเกินไป</small>';
+            div.innerHTML += '<small style="color:red;font-size:10px">รหัสยาวเกิน</small>';
         }
     }
 }
 
-// ================= CAMERA =================
-let lastCamTime = 0;
+// CAMERA
+let lastCam=0;
 function startCamera(){
     document.getElementById('cameraArea').style.display='block';
-    Quagga.init({
-        inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#cameraStream'), constraints: { facingMode: "environment" } },
-        decoder: { readers: ["code_128_reader"] },
-        locate: true
-    }, (err) => { if(!err) Quagga.start(); });
-    
-    Quagga.onDetected((data) => {
-        const now = Date.now();
-        if(now - lastCamTime < 2000) return; // Debounce 2 sec
-        lastCamTime = now;
-        processScan(data.codeResult.code.replace(/!/g,''));
-    });
+    Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#cameraStream'), constraints: { facingMode: "environment" } }, decoder: { readers: ["code_128_reader"] }, locate: true }, (err) => { if(!err) Quagga.start(); });
+    Quagga.onDetected((d) => { if(Date.now()-lastCam<2000)return; lastCam=Date.now(); processScan(d.codeResult.code.replace(/!/g,'')); });
 }
 function stopCamera(){ Quagga.stop(); document.getElementById('cameraArea').style.display='none'; }
 
+renderLogs();
 </script>
 </body>
 </html>
