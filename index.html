@@ -252,10 +252,22 @@ async function requestBarcodes(){
   }
 }
 
+// แก้ไขฟังก์ชันนี้ (ลบอันเก่าทิ้ง ก๊อปอันนี้ไปแปะแทน)
+/* ===== แก้ไขฟังก์ชัน renderBarcodes (เวอร์ชั่น Auto-Fit) ===== */
 function renderBarcodes(name,prefix,start,end){
   const labels = document.getElementById('labels');
   labels.innerHTML='';
   let i=0;
+  
+  // ดึงขนาดความกว้างที่ตั้งไว้ (หรือ default 50mm ถ้าเป็น A4 จะปรับตามกล่อง)
+  const mode = document.getElementById('printMode').value;
+  let maxW = 200; // ค่าสมมติสำหรับ A4 (px)
+  
+  if(mode === 'Single'){
+     // แปลง mm เป็น px (1mm ≈ 3.78px) เอาสัก 95% กันตกขอบ
+     maxW = (document.getElementById('pWidth').value || 50) * 3.78 * 0.95;
+  }
+
   for(let n=start;n<=end;n++){
     const num=String(n).padStart(3,'0');
     const code=`${name}-${prefix}${num}!`;
@@ -264,13 +276,37 @@ function renderBarcodes(name,prefix,start,end){
     div.innerHTML=`
       <div class="label-name">${name}</div>
       <div class="barcode-wrap">
-        <svg id="bc${i}"></svg>
+         <svg id="bc${i}"></svg>
       </div>
       <div class="label-code">${code}</div>
     `;
     labels.appendChild(div);
 
-    JsBarcode(`#bc${i}`, code, { format: 'CODE128', width: 1.5, height: 38, margin: 4, displayValue: false });
+    // 1. สร้างบาร์โค้ดแบบเส้นหนา (Width: 2) เพื่อความคมชัด
+    JsBarcode(`#bc${i}`, code, { 
+        format: 'CODE128', 
+        width: 2.2,      // <--- ปรับให้หนาขึ้น (เลข 8 จะได้ไม่ติดกัน)
+        height: 35, 
+        margin: 0,
+        displayValue: false 
+    });
+
+    // 2. ระบบ Auto-Fit: เช็คว่าล้นไหม? ถ้าล้นให้บีบ
+    const svg = document.getElementById(`bc${i}`);
+    const currentW = svg.getBoundingClientRect().width;
+    
+    // ถ้าโหมด Single แล้วมันล้นความกว้างที่ตั้งไว้ หรือ ถ้าโหมด A4 แล้วมันดูยาวเกิน
+    if(mode === 'Single' && currentW > maxW){
+        const scale = maxW / currentW; // คำนวณอัตราส่วน
+        svg.style.transform = `scaleX(${scale})`; // บีบแกน X
+        svg.style.transformOrigin = 'center';      // บีบจากตรงกลาง
+        svg.style.width = '100%';                  // บังคับไม่ให้ดันกล่องแตก
+    } else if (mode === 'A4') {
+        // สำหรับ A4 ถ้ามันยาวมาก ให้จำกัดความกว้างสูงสุดไว้
+        svg.style.maxWidth = '100%';
+        svg.style.height = 'auto';
+    }
+
     i++;
   }
 }
