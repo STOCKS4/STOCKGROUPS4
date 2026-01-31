@@ -103,14 +103,12 @@ const stockEl = document.getElementById('stock');
 const feedbackEl = document.getElementById('scanFeedback');
 
 // ✅ ปรับปรุง: เพิ่ม Timeout กันยิงรัวเกินไป (Debounce)
-let inputTimeout;
-barcodeInput.addEventListener('input', ()=>{
-  clearTimeout(inputTimeout);
-  inputTimeout = setTimeout(() => {
-    if(barcodeInput.value.length > 5){
-      processBarcode();
-    }
-  }, 200); 
+// ✅ ใช้อันนี้แทน: ทำงานเมื่อกด Enter เท่านั้น
+barcodeInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+     e.preventDefault(); // กันหน้าเว็บรีเฟรช
+     processBarcode();   // เริ่มทำงานทันที
+  }
 });
 
 // ===== MAIN FLOW =====
@@ -291,3 +289,4 @@ saveAndRender();
 
 </body>
 </html>
+
