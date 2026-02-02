@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>S4 Inventory (Print Perfect)</title>
+<title>S4 Inventory (Print Master)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -19,22 +19,26 @@ header { background: var(--primary); color: white; padding: 1rem 1.5rem; display
 .brand { font-weight: 700; font-size: 1.25rem; }
 
 /* Layout */
-.container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; display: grid; grid-template-columns: 1fr 350px; gap: 24px; }
+.container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; display: grid; grid-template-columns: 1fr 360px; gap: 24px; }
 @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
 
-/* UI Components */
+/* Cards & UI */
 .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; }
 .card-header { padding: 1rem 1.5rem; background: #fff; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--primary); }
 .card-body { padding: 1.5rem; }
 
-input, select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; box-sizing: border-box; font-size: 1rem; font-family: 'Sarabun', sans-serif; }
-label { display: block; margin-bottom: 0.3rem; font-weight: 600; font-size: 0.85rem; color: #64748b; }
+input, select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 5px; box-sizing: border-box; font-size: 0.95rem; font-family: 'Sarabun', sans-serif; }
+.input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+.input-wrapper { flex: 1; text-align: center; }
+.input-label { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
 
-.btn { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; color: white; font-size: 0.95rem; margin-top: 5px; }
+label { display: block; margin-bottom: 0.3rem; font-weight: 600; font-size: 0.85rem; color: #64748b; margin-top: 10px; }
+
+.btn { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; color: white; font-size: 0.95rem; margin-top: 10px; }
 .btn-primary { background: var(--accent); } 
 .btn-dark { background: var(--primary); }
-.btn-outline { background: transparent; border: 1px solid var(--border); color: #64748b; width: auto; padding: 0.4rem 1rem; }
-.btn-scan { background: #10b981; width: auto; padding: 0 1.5rem; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: #64748b; width: auto; padding: 0.4rem 1rem; margin-top: 0; }
+.btn-scan { background: #10b981; width: auto; padding: 0 1.5rem; margin-top: 0; }
 
 /* Table */
 .table-responsive { overflow-x: auto; }
@@ -44,56 +48,61 @@ th { background: #f8fafc; color: #64748b; font-weight: 600; }
 .badge { padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; }
 .badge-in { background: #dcfce7; color: #166534; } .badge-out { background: #fee2e2; color: #991b1b; }
 
-/* QR Preview (ในหน้าจอ) */
-.preview-area { background: #e2e8f0; padding: 20px; border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+/* PREVIEW AREA */
+.preview-area { background: #e2e8f0; padding: 20px; border-radius: 8px; min-height: 200px; display: flex; flex-direction: column; align-items: center; gap: 20px; overflow-y: auto; max-height: 500px; }
+
+/* STICKER STYLE */
 .label-preview { 
     background: white; 
-    border: 1px dashed red; /* เส้นประสีแดงจำลองขอบกระดาษ */
+    border: 1px dashed #ef4444; /* เส้นประสีแดง = ขอบกระดาษจริง */
     display: flex; 
     flex-direction: column; 
     align-items: center; 
-    justify-content: center; 
+    /* justify-content: center;  <-- เอาออก เพื่อให้ Margin ทำงาน */
     text-align: center;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    overflow: hidden;
     position: relative;
+    box-sizing: border-box; /* สำคัญ! ให้ Padding อยู่ในขนาด */
+    overflow: hidden;
 }
+
 .qr-box img { display: block; margin: 0 auto; }
 .lbl-name { font-weight: 700; color: #000; font-size: 14px; line-height: 1.2; width: 95%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
 .lbl-code { font-family: 'Roboto Mono', monospace; font-size: 12px; color: #000; font-weight: 600; margin-top: 2px; }
 
 /* Camera */
 #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 10px; display: none; border: 2px solid var(--accent); }
-#scanFeedback { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 2000; font-weight: 600; text-align: center; opacity: 0; pointer-events: none; transition: 0.3s; }
+#scanFeedback { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; z-index: 2000; font-weight: 600; text-align: center; opacity: 0; pointer-events: none; transition: 0.3s; width: 80%; }
 
-/* 🔥 PRINT ENGINE (CENTERING FIX) 🔥 */
+/* 🔥 PRINT ENGINE (GAP & MARGIN FIX) 🔥 */
 @media print {
     body { background: white; margin: 0; padding: 0; }
     header, .container, #scanFeedback, #reader { display: none !important; }
     
     #printArea { 
         display: block !important; 
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; padding: 0; 
+        position: absolute; top: 0; left: 0; width: 100%; margin: 0; padding: 0; 
     }
 
-    /* Thermal Mode: บังคับจัดกึ่งกลาง */
-    .mode-single { width: 100%; height: 100%; }
+    /* Thermal Mode */
+    .mode-single { width: 100%; }
     .label-preview {
-        border: none !important; /* เอาเส้นแดงออกตอนปริ้นจริง */
+        border: none !important; 
         box-shadow: none !important;
         margin: 0 auto !important;
-        page-break-after: always !important; /* ตัดหน้า */
+        
+        /* 🔥 บังคับตัดหน้า: 1 ดวง = 1 หน้า = ข้าม Gap เอง */
+        page-break-after: always !important; 
         break-after: page !important;
         
-        /* 🔥 กุญแจสำคัญ: จัดกึ่งกลางหน้ากระดาษ */
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-        align-items: center !important;
-        
-        /* บังคับขนาดให้เต็มหน้ากระดาษที่ตั้งไว้ */
+        /* บังคับขนาด */
         width: 100% !important;
         height: 100% !important;
+        
+        /* การจัดวาง: ใช้ Padding จากที่ตั้งค่าไว้ */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
     }
     
     /* A4 Grid Mode */
@@ -138,7 +147,7 @@ th { background: #f8fafc; color: #64748b; font-weight: 600; }
 
     <div>
         <div class="card" style="position:sticky; top:20px;">
-            <div class="card-header">🖨️ ตั้งค่ากระดาษ & สร้าง QR</div>
+            <div class="card-header">🖨️ ตั้งค่า & สร้าง QR</div>
             <div class="card-body">
                 
                 <label>รูปแบบการพิมพ์</label>
@@ -147,17 +156,23 @@ th { background: #f8fafc; color: #64748b; font-weight: 600; }
                     <option value="A4">📄 A4 (ตาราง)</option>
                 </select>
 
-                <div id="sizeInputs" style="background:#f1f5f9; padding:10px; border-radius:8px; margin-bottom:15px;">
-                    <label>📏 ขนาดกระดาษ (มม.)</label>
-                    <div style="display: flex; gap: 10px;">
-                        <div><input id="pWidth" type="number" value="50"><div style="font-size:0.7rem; color:#64748b; text-align:center;">กว้าง</div></div>
-                        <div style="padding-top:10px;">x</div>
-                        <div><input id="pHeight" type="number" value="30"><div style="font-size:0.7rem; color:#64748b; text-align:center;">สูง</div></div>
+                <div id="sizeInputs" style="background:#f1f5f9; padding:15px; border-radius:8px; margin-bottom:15px;">
+                    <label style="margin-top:0">📏 ขนาดกระดาษ (มม.)</label>
+                    <div class="input-group">
+                        <div class="input-wrapper"><input id="pWidth" type="number" value="50"><div class="input-label">กว้าง</div></div>
+                        <div style="align-self:center; margin-bottom:15px;">x</div>
+                        <div class="input-wrapper"><input id="pHeight" type="number" value="30"><div class="input-label">สูง</div></div>
                     </div>
-                    <div style="font-size:0.75rem; color:red; margin-top:5px;">*วัดขนาดสติ๊กเกอร์จริง แล้วกรอกที่นี่!</div>
+
+                    <label>🔧 จูนตำแหน่ง (มม.)</label>
+                    <div class="input-group" style="margin-bottom:0">
+                        <div class="input-wrapper"><input id="pMarginTop" type="number" value="2"><div class="input-label">ดันลง (Top)</div></div>
+                        <div class="input-wrapper"><input id="pMarginLeft" type="number" value="0"><div class="input-label">ดันขวา (Left)</div></div>
+                    </div>
+                    <div style="font-size:0.75rem; color:red; margin-top:10px;">*ถ้าปริ้นกินขอบบน/ช่องว่าง ให้เพิ่มค่า "ดันลง"</div>
                 </div>
 
-                <div style="display:flex; gap:10px;">
+                <div class="input-group">
                     <div style="flex:2"><label>รหัส</label><input id="genName" placeholder="เช่น s-an6-4mm"></div>
                     <div style="flex:1"><label>จำนวน</label><input id="genQty" type="number" value="1"></div>
                 </div>
@@ -172,7 +187,7 @@ th { background: #f8fafc; color: #64748b; font-weight: 600; }
 </div>
 
 <div id="printArea" class="preview-area">
-    <div style="color:#64748b;">(พื้นที่แสดงผล QR Code จะปรากฏที่นี่)</div>
+    <div style="color:#64748b;">(พื้นที่แสดงผล QR Code)</div>
 </div>
 
 <div id="scanFeedback"></div>
@@ -184,44 +199,63 @@ let logs = JSON.parse(localStorage.getItem('logs_s4') || '[]');
 const els = { barcode: document.getElementById('barcode'), stock: document.getElementById('stock'), printArea: document.getElementById('printArea'), feedback: document.getElementById('scanFeedback'), debug: document.getElementById('debugLine') };
 
 // Init Settings
-if(localStorage.getItem('print_w')) document.getElementById('pWidth').value = localStorage.getItem('print_w');
-if(localStorage.getItem('print_h')) document.getElementById('pHeight').value = localStorage.getItem('print_h');
+const settings = ['print_w', 'print_h', 'print_mt', 'print_ml', 'print_mode'];
+const defaults = { print_w: 50, print_h: 30, print_mt: 2, print_ml: 0, print_mode: 'Single' };
 
-// ================= PRINT CONFIG (DYNAMIC SIZE) =================
+settings.forEach(k => {
+    let val = localStorage.getItem(k) || defaults[k];
+    let el = document.getElementById(k.replace('print_', 'p').replace('mode', 'rintMode').replace('mt', 'MarginTop').replace('ml', 'MarginLeft'));
+    if(el) el.value = val;
+});
+
+// ================= PRINT CONFIG (DYNAMIC PADDING) =================
 function updatePrintConfig(){
     const mode = document.getElementById('printMode').value;
-    const w = document.getElementById('pWidth').value || 50;
-    const h = document.getElementById('pHeight').value || 30;
+    const w = document.getElementById('pWidth').value;
+    const h = document.getElementById('pHeight').value;
+    const mt = document.getElementById('pMarginTop').value; // Margin Top
+    const ml = document.getElementById('pMarginLeft').value; // Margin Left
     
-    // UI Logic
     document.getElementById('sizeInputs').style.display = (mode === 'Single') ? 'block' : 'none';
-    els.printArea.className = (mode === 'Single') ? 'mode-single' : 'mode-a4'; // เปลี่ยน class แม่
+    els.printArea.className = (mode === 'Single') ? 'mode-single' : 'mode-a4';
     
-    // Inject @Page CSS
+    // Inject CSS
     let styleTag = document.getElementById('dynamic-page-size');
     if(styleTag) styleTag.remove();
     styleTag = document.createElement('style'); styleTag.id = 'dynamic-page-size';
     
     if(mode === 'Single'){
-        // Thermal: ตั้งค่าหน้ากระดาษตามที่กรอกเป๊ะๆ + ล้าง Margin
         styleTag.innerHTML = `
             @media print { 
                 @page { size: ${w}mm ${h}mm; margin: 0; } 
                 html, body { width: ${w}mm; height: ${h}mm; }
             }
-            /* Preview ในหน้าจอ */
-            .label-preview { width: ${w}mm; height: ${h}mm; } 
+            .label-preview { 
+                width: ${w}mm; height: ${h}mm; 
+                padding-top: ${mt}mm;   /* 🔥 จูนระยะบน */
+                padding-left: ${ml}mm;  /* 🔥 จูนระยะซ้าย */
+            }
         `;
     } else {
         styleTag.innerHTML = `@media print { @page { size: A4; margin: 0.5cm; } } .label-preview { width: 50mm; height: 50mm; }`;
     }
     document.head.appendChild(styleTag);
     
+    // Save
     localStorage.setItem('print_mode', mode); localStorage.setItem('print_w', w); localStorage.setItem('print_h', h);
+    localStorage.setItem('print_mt', mt); localStorage.setItem('print_ml', ml);
 }
-document.getElementById('pWidth').addEventListener('input', updatePrintConfig);
-document.getElementById('pHeight').addEventListener('input', updatePrintConfig);
-document.getElementById('printMode').addEventListener('change', updatePrintConfig);
+
+// Add Listeners
+['pWidth', 'pHeight', 'pMarginTop', 'pMarginLeft', 'printMode'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+        updatePrintConfig();
+        // ถ้ามี QR แสดงอยู่แล้ว ให้ขยับตามทันที (Live Preview)
+        if(els.printArea.innerHTML.includes('label-preview')) {
+            // ไม่ต้อง regenerate แค่แก้ CSS ก็ขยับแล้ว
+        }
+    });
+});
 updatePrintConfig();
 
 // ================= GENERATOR LOGIC =================
@@ -231,12 +265,8 @@ async function requestBarcodes(){
     if(!name || qty <= 0) return alert('กรอกข้อมูลให้ครบ');
     
     showFeedback('⏳ สร้าง QR...', '#334155');
-    
-    // Clear old
     els.printArea.innerHTML = '';
 
-    // Generate Local (ไม่ต้องรอ Server ก็ได้สำหรับ QR)
-    // แต่ถ้ารันเลขต้องใช้ Server (ในที่นี้จำลองว่าได้เลขมาแล้ว)
     const res = await fetch(SHEET_URL, { method: 'POST', body: JSON.stringify({ actionType: 'GENERATE', name: name, qty: qty }) });
     const data = await res.json();
 
@@ -247,40 +277,30 @@ async function requestBarcodes(){
 }
 
 function generateLabels(name, start, end){
-    updatePrintConfig(); // Sync size
-    
+    updatePrintConfig(); 
     const mode = document.getElementById('printMode').value;
-    // คำนวณขนาด QR ให้พอดีกับกระดาษ (เผื่อขอบนิดหน่อย)
     const paperH = parseInt(document.getElementById('pHeight').value) || 30;
-    const qrSize = (mode === 'Single') ? (paperH - 12) * 3.78 : 100; // แปลง mm เป็น pixel คร่าวๆ
+    // คำนวณขนาด QR ให้พอดี: ความสูงกระดาษ - (padding บนล่าง + text บนล่าง)
+    const qrSize = (mode === 'Single') ? (paperH - 15) * 3.78 : 100; 
 
     for(let i = start; i <= end; i++){
         const num = String(i).padStart(3, '0');
         const machineCode = `${name}${SEPARATOR}${num}`;
-        const humanText = `${name} (${num})`;
-
+        
         const div = document.createElement('div');
         div.className = 'label-preview';
-        
-        div.innerHTML = `
-            <div class="lbl-name">${name}</div>
-            <div id="qr_${i}" class="qr-box"></div>
-            <div class="lbl-code">${num}</div>
-        `;
+        div.innerHTML = `<div class="lbl-name">${name}</div><div id="qr_${i}" class="qr-box"></div><div class="lbl-code">${num}</div>`;
         els.printArea.appendChild(div);
         
         new QRCode(document.getElementById(`qr_${i}`), { 
             text: unescape(encodeURIComponent(machineCode)), 
-            width: qrSize, height: qrSize, 
-            correctLevel : QRCode.CorrectLevel.L 
+            width: qrSize, height: qrSize, correctLevel : QRCode.CorrectLevel.L 
         });
     }
-    
-    // Scroll ไปที่ Preview
     document.getElementById('printArea').scrollIntoView({behavior: "smooth"});
 }
 
-// ================= SCANNER LOGIC (Fixed) =================
+// ================= SCANNER LOGIC =================
 let inputBufferTimer; let isBusy = false; let isCameraCooldown = false;
 
 els.barcode.addEventListener('input', (e) => {
@@ -304,8 +324,6 @@ async function processScan(code, source){
     
     isBusy = true; 
     let productKey = raw;
-    
-    // แยก ___
     if (raw.includes(SEPARATOR)) { productKey = raw.split(SEPARATOR)[0]; }
     else if(raw.length > 5 && !isNaN(raw) && !raw.includes('-')) { productKey = raw.substring(0, raw.length - 3); }
 
@@ -317,7 +335,7 @@ async function processScan(code, source){
         const data = await res.json();
 
         if(data.status !== 'success'){ 
-            if(productKey !== raw){ // Retry
+            if(productKey !== raw){ 
                  const res2 = await fetch(SHEET_URL, { method: 'POST', body: JSON.stringify({ actionType: 'GET_PRODUCT', code: raw, fullBarcode: raw }) });
                  const data2 = await res2.json();
                  if(data2.status === 'success'){ logSuccess(data2, raw, source); return; }
@@ -354,11 +372,7 @@ function renderLogs(){
     els.stock.innerHTML = logs.map(l => `<tr><td style="color:#64748b; font-size:0.8rem;">${new Date(l.time).toLocaleTimeString('th-TH')}</td><td><div style="font-weight:600; font-size:0.9rem;">${l.name}</div><div style="font-size:0.75rem; color:#94a3b8;">${l.barcode}</div></td><td><span class="badge ${l.action==='IN'?'badge-in':'badge-out'}">${l.action}</span></td></tr>`).join('');
 }
 function clearData(){ if(confirm('ล้าง?')){ logs=[]; localStorage.removeItem('logs_s4'); renderLogs(); } }
-function showFeedback(text, color){ 
-    els.feedback.innerHTML = text; els.feedback.style.background = color; 
-    els.feedback.style.opacity = 1; els.feedback.style.bottom = "50px"; 
-    setTimeout(() => { els.feedback.style.opacity = 0; els.feedback.style.bottom = "30px"; }, 2000); 
-}
+function showFeedback(text, color){ els.feedback.innerHTML = text; els.feedback.style.background = color; els.feedback.style.opacity = 1; els.feedback.style.bottom = "50px"; setTimeout(() => { els.feedback.style.opacity = 0; els.feedback.style.bottom = "30px"; }, 2000); }
 
 // Camera
 let html5QrcodeScanner = null;
