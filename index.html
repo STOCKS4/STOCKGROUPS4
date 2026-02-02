@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>S4 Inventory (Stable QR)</title>
+<title>S4 Inventory (Mobile Optimized)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -25,13 +25,14 @@ header { background: var(--primary); color: white; padding: 1rem 1.5rem; display
 .card-header { padding: 1rem 1.5rem; background: #fff; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
 .card-body { padding: 1.5rem; }
 
-input, select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; box-sizing: border-box; font-size: 0.95rem; }
+input, select { width: 100%; padding: 0.85rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; box-sizing: border-box; font-size: 1rem; }
 .btn { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; color: white; font-size: 0.95rem; display: flex; justify-content: center; align-items: center; gap: 8px; }
 .btn-primary { background: var(--accent); } .btn-dark { background: var(--primary); }
 .btn-outline { background: transparent; border: 1px solid var(--border); color: #64748b; width: auto; padding: 0.4rem 1rem; font-size: 0.85rem; }
 .btn-scan { background: #10b981; width: auto; padding: 0 1.5rem; }
 
 /* Table */
+.table-responsive { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #f1f5f9; }
 th { background: #f8fafc; color: #64748b; font-weight: 600; }
@@ -49,17 +50,15 @@ th { background: #f8fafc; color: #64748b; font-weight: 600; }
 
 /* Camera & Feedback */
 #reader { width: 100%; border-radius: 12px; overflow: hidden; margin-top: 20px; display: none; border: 2px solid var(--accent); }
-#scanFeedback { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 2000; font-weight: 600; }
+#scanFeedback { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 2000; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align:center; width: 80%; }
 
 /* Print Engine */
 @media print {
     body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     header, .container, #scanFeedback, #reader { display: none !important; }
     #printArea { display: block !important; position: absolute; top: 0; left: 0; width: 100%; margin: 0; padding: 0; }
-    
     .mode-a4 .labels-container { display: grid !important; grid-template-columns: repeat(5, 1fr) !important; gap: 10px !important; padding: 10px !important; }
     .mode-a4 .label-item { border: 1px dashed #cbd5e1 !important; break-inside: avoid !important; margin: 0 !important; height: auto !important; box-shadow: none !important; }
-    
     .mode-single .labels-container { display: block !important; }
     .mode-single .label-item { border: none !important; page-break-after: always !important; margin: 0 auto !important; width: 100% !important; height: 100% !important; display: flex; justify-content: center; align-items: center; }
 }
@@ -68,68 +67,76 @@ th { background: #f8fafc; color: #64748b; font-weight: 600; }
 <body>
 
 <header>
-    <div class="brand">📦 S4 Inventory (Stable QR)</div>
+    <div class="brand">📦 S4 Inventory</div>
     <div style="font-size:0.85rem; background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:20px;">🟢 Online</div>
 </header>
 
 <div class="container">
+    
     <div>
         <div class="card">
-            <div class="card-header">📷 Scan (มี Delay กันรัว)</div>
+            <div class="card-header">📷 จุดสแกน</div>
             <div class="card-body">
                 <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <div style="flex-grow:1;"><input id="barcode" placeholder="คลิกเพื่อยิงบาร์โค้ด..." autofocus></div>
+                    <div style="flex-grow:1;">
+                        <input id="barcode" placeholder="คลิกช่องนี้เพื่อใช้เครื่องยิง..." autofocus autocomplete="off">
+                    </div>
                     <button class="btn btn-scan" id="btnCamToggle" onclick="toggleCamera()">เปิดกล้อง</button>
                 </div>
                 <div id="reader"></div>
+                <div style="font-size:0.85rem; color:#64748b;">* ใช้เครื่องยิง Bluetooth คลิกที่ช่องกรอก / ใช้กล้องกดปุ่มเขียว</div>
             </div>
         </div>
+
         <div class="card">
-            <div class="card-header">📋 Log <button class="btn-outline" onclick="clearData()">ล้าง</button></div>
+            <div class="card-header">📋 ประวัติล่าสุด <button class="btn-outline" onclick="clearData()">ล้าง</button></div>
             <div class="table-responsive">
-                <table><thead><tr><th>Time</th><th>Product</th><th>Status</th></tr></thead><tbody id="stock"></tbody></table>
+                <table><thead><tr><th width="25%">เวลา</th><th width="55%">สินค้า</th><th width="20%">สถานะ</th></tr></thead><tbody id="stock"></tbody></table>
             </div>
         </div>
     </div>
 
     <div>
         <div class="card" style="position:sticky; top:100px;">
-            <div class="card-header">🖨️ QR Generator</div>
+            <div class="card-header">🖨️ สร้าง QR Code</div>
             <div class="card-body">
                 <div class="settings-box">
-                    <label>Print Format</label>
+                    <label>รูปแบบการพิมพ์</label>
                     <select id="printMode" onchange="updatePrintConfig()">
-                        <option value="A4">📄 A4 Paper (Grid 5x)</option>
-                        <option value="Single">🧻 Thermal Roll (Single)</option>
+                        <option value="A4">📄 A4 (ตาราง 5x)</option>
+                        <option value="Single">🧻 สติ๊กเกอร์ม้วน (เดี่ยว)</option>
                     </select>
-                    <div id="sizeInputs" style="display:none; display: flex; gap: 10px; align-items: flex-end;">
-                        <div style="flex:1"><label>W</label><input id="pWidth" type="number" value="50"></div>
-                        <div style="flex:1"><label>H</label><input id="pHeight" type="number" value="50"></div>
+                    <div id="sizeInputs" class="row" style="display:none; align-items: flex-end;">
+                        <div class="col"><label>กว้าง</label><input id="pWidth" type="number" value="50"></div>
+                        <div class="col"><label>สูง</label><input id="pHeight" type="number" value="50"></div>
                     </div>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <div style="flex:2"><label>Code</label><input id="genName" placeholder="e.g. 18802"></div>
-                    <div style="flex:1"><label>Qty</label><input id="genQty" type="number" value="10"></div>
+                <div class="row">
+                    <div class="col-2"><label>รหัสสินค้า</label><input id="genName" placeholder="เช่น 18802"></div>
+                    <div class="col"><label>จำนวน</label><input id="genQty" type="number" value="10"></div>
                 </div>
-                <div style="display:flex; gap:10px; margin-top:10px;">
+                <div class="row" style="margin-top:10px;">
                     <button class="btn btn-primary" onclick="requestBarcodes()">สร้าง QR</button>
-                    <button class="btn btn-dark" onclick="window.print()">Print</button>
+                    <button class="btn btn-dark" onclick="window.print()">สั่งปริ้น</button>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 
-<div id="printArea"><div id="labelsContainer" class="labels-container"></div></div>
+<div id="printArea">
+    <div id="labelsContainer" class="labels-container"></div>
+    <div id="emptyMsg" style="text-align:center; padding:50px; color:#cbd5e1;">(ยังไม่มี QR Code)</div>
+</div>
 <div id="scanFeedback"></div>
 
 <script>
-// CONFIG
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxlC36QoUV37QvM6fazvGOlf5daaHrmdVTjQuHqpRnX_kTOFt7q3JbjwZ7H-rHBM00/exec';
 let logs = JSON.parse(localStorage.getItem('logs_s4') || '[]');
 const els = { barcode: document.getElementById('barcode'), stock: document.getElementById('stock'), container: document.getElementById('labelsContainer'), printArea: document.getElementById('printArea'), feedback: document.getElementById('scanFeedback') };
 
-// Settings Load
+// Settings
 if(localStorage.getItem('print_w')) document.getElementById('pWidth').value = localStorage.getItem('print_w');
 if(localStorage.getItem('print_h')) document.getElementById('pHeight').value = localStorage.getItem('print_h');
 if(localStorage.getItem('print_mode')) document.getElementById('printMode').value = localStorage.getItem('print_mode');
@@ -144,7 +151,8 @@ function updatePrintConfig(){
     let styleTag = document.getElementById('dynamic-page-size');
     if(styleTag) styleTag.remove();
     styleTag = document.createElement('style'); styleTag.id = 'dynamic-page-size';
-    styleTag.innerHTML = (mode === 'Single') ? `@media print { @page { size: ${w}mm ${h}mm; margin: 0; } }` : `@media print { @page { size: A4; margin: 0.5cm; } }`;
+    if(mode === 'Single'){ styleTag.innerHTML = `@media print { @page { size: ${w}mm ${h}mm; margin: 0; } }`; } 
+    else { styleTag.innerHTML = `@media print { @page { size: A4; margin: 0.5cm; } }`; }
     document.head.appendChild(styleTag);
     localStorage.setItem('print_mode', mode); localStorage.setItem('print_w', w); localStorage.setItem('print_h', h);
 }
@@ -152,114 +160,115 @@ document.getElementById('pWidth').addEventListener('input', updatePrintConfig);
 document.getElementById('pHeight').addEventListener('input', updatePrintConfig);
 updatePrintConfig();
 
-// ================= GLOBAL PROCESS LOCK & DEBOUNCE =================
-let isProcessing = false;       // ล็อคระบบขณะโหลดข้อมูล (กันยิงแทรก)
-let lastScanCode = "";          // จำโค้ดล่าสุด
-let lastScanTime = 0;           // จำเวลาล่าสุด
+// ================= 🔥 LOGIC: SCANNER & CAMERA HANDLING 🔥 =================
+let inputBufferTimer; 
+let isBusy = false; 
+let isCameraCooldown = false; // ตัวแปรสำหรับหน่วงเวลากล้อง
 
-async function processScan(code=null){
-    // 1. รับค่า
-    let raw = code || els.barcode.value.replace(/\s/g,'').trim();
-    if(!raw) return;
+// 1. INPUT EVENT (สำหรับเครื่องยิง Bluetooth)
+els.barcode.addEventListener('input', (e) => {
+    if(isBusy) { els.barcode.value = ''; return; }
+    clearTimeout(inputBufferTimer);
+    inputBufferTimer = setTimeout(() => {
+        let val = els.barcode.value.trim();
+        if(val.length > 2) { 
+            // processScan(code, source) -> source='input' แปลว่ามาจากเครื่องยิง
+            processScan(val, 'input'); 
+        }
+    }, 500); 
+});
 
-    // 2. ป้องกันการยิงรัว (Debounce 3 วินาที สำหรับโค้ดเดิม)
-    const now = Date.now();
-    if (raw === lastScanCode && (now - lastScanTime < 3000)) {
-        console.log("Ignored duplicate scan");
-        return; 
-    }
+els.barcode.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
+
+// 2. MAIN PROCESS FUNCTION
+async function processScan(code, source){
+    if(isBusy) return;
     
-    // 3. ล็อคระบบ (Busy State)
-    if(isProcessing) {
-        console.log("System busy, ignored scan");
-        return; 
+    // ถ้ามาจากกล้อง และติด Cooldown อยู่ -> ไม่ทำอะไร
+    if(source === 'camera' && isCameraCooldown) {
+        console.log("Camera Cooldown...");
+        return;
     }
-    isProcessing = true; // ล็อคทันที
-    
-    // อัปเดตตัวแปร Debounce
-    lastScanCode = raw;
-    lastScanTime = now;
 
-    // 4. Decode Logic
+    isBusy = true; 
+
+    // Decode Logic
+    let raw = code;
     let productKey = raw;
     if(raw.length > 5 && !isNaN(raw) && !raw.includes('-')) { productKey = raw.substring(0, raw.length - 3); } 
     else if(raw.includes('-')) { productKey = raw.split('-')[0]; }
 
     showFeedback('⏳ กำลังตรวจสอบ...', '#334155');
-    els.barcode.disabled = true; // ปิดช่องกรอกชั่วคราว
+    els.barcode.disabled = true;
 
     try {
         const res = await fetch(SHEET_URL, { method: 'POST', body: JSON.stringify({ actionType: 'GET_PRODUCT', code: productKey, fullBarcode: raw }) });
         const data = await res.json();
 
         if(data.status !== 'success'){ 
-            if(productKey !== raw){ // Try fallback
+            if(productKey !== raw){ // Fallback
                  const res2 = await fetch(SHEET_URL, { method: 'POST', body: JSON.stringify({ actionType: 'GET_PRODUCT', code: raw, fullBarcode: raw }) });
                  const data2 = await res2.json();
-                 if(data2.status === 'success'){ logSuccess(data2, raw); return; }
+                 if(data2.status === 'success'){ logSuccess(data2, raw, source); return; }
             }
             showFeedback('❌ ไม่พบสินค้า', '#ef4444'); 
         } else {
-            logSuccess(data, raw);
+            logSuccess(data, raw, source);
         }
-    } catch (err) { showFeedback('⚠️ Error', '#ef4444'); }
+    } catch (err) { showFeedback('⚠️ เชื่อมต่อไม่ได้', '#ef4444'); }
     finally {
-        // 5. ปลดล็อคระบบ
-        isProcessing = false;
-        els.barcode.value = ''; // เคลียร์ช่อง
+        isBusy = false;
+        els.barcode.value = ''; 
         els.barcode.disabled = false;
-        els.barcode.focus();
+        
+        // 🔥 แก้คีย์บอร์ดเด้ง: 
+        // ถ้ามาจาก 'input' (เครื่องยิง) -> ให้ Focus กลับ เพื่อยิงต่อได้เลย
+        // ถ้ามาจาก 'camera' -> ห้าม Focus! (คีย์บอร์ดจะไม่เด้ง)
+        if(source === 'input') {
+            els.barcode.focus();
+        } else {
+            els.barcode.blur(); // บังคับปิด Focus ทันที
+        }
+        
+        // ตั้ง Cooldown สำหรับกล้อง 3 วินาที (เฉพาะกรณีใช้กล้อง)
+        if(source === 'camera') {
+            isCameraCooldown = true;
+            setTimeout(() => { isCameraCooldown = false; }, 3000);
+        }
     }
 }
 
-function logSuccess(data, raw){
+function logSuccess(data, raw, source){
     let action = (data.last_action === 'IN') ? 'OUT' : 'IN';
-    // ส่งข้อมูลเข้า Sheet (ไม่ต้องรอ)
     fetch(SHEET_URL, { method: 'POST', body: JSON.stringify({ actionType: 'LOG', barcode: raw, name: data.full_name, action: action, fixedCode: data.code }) });
-
     logs.unshift({ time: Date.now(), barcode: raw, name: data.full_name, action: action });
     if(logs.length > 50) logs.pop();
     localStorage.setItem('logs_s4', JSON.stringify(logs));
     renderLogs();
     
-    showFeedback(`✅ ${action}: ${data.full_name}`, action==='IN'?'#10b981':'#ef4444');
-}
-
-// Physical Scanner Listener
-els.barcode.addEventListener('keydown', (e) => { 
-    if (e.key === 'Enter') { 
-        e.preventDefault(); 
-        // รอแป๊บนึงเพื่อให้แน่ใจว่าค่าเข้าครบแล้ว (50ms)
-        setTimeout(() => processScan(), 50);
-    } 
-});
-
-// Camera Engine (Html5Qrcode)
-let html5QrcodeScanner = null;
-function toggleCamera(){
-    const reader = document.getElementById('reader');
-    const btn = document.getElementById('btnCamToggle');
-    if(html5QrcodeScanner){
-        html5QrcodeScanner.clear().then(_ => { reader.style.display = 'none'; btn.innerText = 'เปิดกล้อง'; btn.style.background = '#10b981'; html5QrcodeScanner = null; });
+    // Feedback
+    let color = action==='IN'?'#10b981':'#ef4444';
+    if(source === 'camera') {
+        showFeedback(`✅ ${action}: ${data.full_name}<br><small>(พักกล้อง 3 วิ)</small>`, color);
     } else {
-        reader.style.display = 'block'; btn.innerText = 'ปิดกล้อง'; btn.style.background = '#ef4444';
-        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        html5QrcodeScanner.render(onScanSuccess);
+        showFeedback(`✅ ${action}: ${data.full_name}`, color);
     }
 }
 
-function onScanSuccess(decodedText) {
-    // ส่งเข้า Process Scan (ซึ่งมีตัวดัก Debounce อยู่แล้ว)
-    processScan(decodedText);
+function renderLogs(){
+    if(logs.length === 0) { els.stock.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#94a3b8;">ยังไม่มีประวัติ</td></tr>'; return; }
+    els.stock.innerHTML = logs.map(l => `<tr><td style="color:#64748b; font-size:0.85rem;">${new Date(l.time).toLocaleTimeString('th-TH')}</td><td><div style="font-weight:600; color:#0f172a;">${l.name}</div><div class="code-text">${l.barcode}</div></td><td><span class="badge ${l.action === 'IN' ? 'badge-in' : 'badge-out'}">${l.action}</span></td></tr>`).join('');
 }
+function clearData(){ if(confirm('ยืนยันล้างประวัติ?')){ logs=[]; localStorage.removeItem('logs_s4'); renderLogs(); } }
+function showFeedback(text, color){ els.feedback.innerHTML = text; els.feedback.style.background = color; els.feedback.style.opacity = 1; els.feedback.style.bottom = "50px"; setTimeout(() => { els.feedback.style.opacity = 0; els.feedback.style.bottom = "30px"; }, 2000); }
 
 // QR Generator
 async function requestBarcodes(){
     const name = document.getElementById('genName').value.trim();
     const qty = parseInt(document.getElementById('genQty').value);
     if(!name || qty <= 0) return alert('กรอกข้อมูลให้ครบ');
-    
-    showFeedback('⏳ กำลังสร้าง QR...', '#334155');
+    showFeedback('⏳ สร้าง QR...', '#334155');
+    document.getElementById('emptyMsg').style.display = 'none';
     const res = await fetch(SHEET_URL, { method: 'POST', body: JSON.stringify({ actionType: 'GENERATE', name: name, qty: qty }) });
     const data = await res.json();
     if(data.status === 'success'){ generateLabels(name, data.start, data.end); showFeedback('✅ เรียบร้อย', '#10b981'); }
@@ -271,37 +280,41 @@ function generateLabels(name, start, end){
     const w = document.getElementById('pWidth').value;
     const h = document.getElementById('pHeight').value;
     updatePrintConfig(); 
-
     for(let i = start; i <= end; i++){
         const num = String(i).padStart(3, '0');
         const machineCode = `${name}${num}`; 
         const humanText = `${name}-${num}`;
-
         const div = document.createElement('div');
         div.className = 'label-item';
         if(mode === 'Single'){ div.style.width = w + 'mm'; div.style.height = h + 'mm'; }
-
-        const nameEl = document.createElement('div'); nameEl.className = 'lbl-name'; nameEl.innerText = name; div.appendChild(nameEl);
-        const qrEl = document.createElement('div'); qrEl.className = 'qr-code-box'; div.appendChild(qrEl);
-        const codeEl = document.createElement('div'); codeEl.className = 'lbl-code'; codeEl.innerText = humanText; div.appendChild(codeEl);
         
+        div.innerHTML = `<div class="lbl-name">${name}</div><div id="qr_${i}" class="qr-code-box"></div><div class="lbl-code">${humanText}</div>`;
         els.container.appendChild(div);
-
-        new QRCode(qrEl, {
-            text: machineCode,
-            width: (mode === 'Single' ? 90 : 80),
-            height: (mode === 'Single' ? 90 : 80),
-            colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M
-        });
+        new QRCode(document.getElementById(`qr_${i}`), { text: machineCode, width: (mode==='Single'?90:80), height: (mode==='Single'?90:80) });
     }
 }
 
-function renderLogs(){
-    if(logs.length === 0) { els.stock.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#94a3b8;">ยังไม่มีประวัติ</td></tr>'; return; }
-    els.stock.innerHTML = logs.map(l => `<tr><td style="color:#64748b; font-size:0.85rem;">${new Date(l.time).toLocaleTimeString('th-TH')}</td><td><div style="font-weight:600; color:#0f172a;">${l.name}</div><div class="code-text">${l.barcode}</div></td><td><span class="${l.action === 'IN' ? 'badge-in' : 'badge-out'}">${l.action}</span></td></tr>`).join('');
+// Camera Engine
+let html5QrcodeScanner = null;
+function toggleCamera(){
+    const reader = document.getElementById('reader');
+    const btn = document.getElementById('btnCamToggle');
+    if(html5QrcodeScanner){
+        html5QrcodeScanner.clear().then(_ => { reader.style.display = 'none'; btn.innerText = 'เปิดกล้อง'; btn.style.background = '#10b981'; html5QrcodeScanner = null; });
+    } else {
+        // 🔥 Hack: สั่ง Blur ช่องกรอกทันทีที่เปิดกล้อง เพื่อซ่อนคีย์บอร์ด
+        els.barcode.blur();
+        
+        reader.style.display = 'block'; btn.innerText = 'ปิดกล้อง'; btn.style.background = '#ef4444';
+        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        html5QrcodeScanner.render(onScanSuccess);
+    }
 }
-function clearData(){ if(confirm('ยืนยันล้างประวัติ?')){ logs=[]; localStorage.removeItem('logs_s4'); renderLogs(); } }
-function showFeedback(text, color){ els.feedback.innerText = text; els.feedback.style.background = color; els.feedback.style.opacity = 1; setTimeout(() => els.feedback.style.opacity = 0, 2000); }
+
+function onScanSuccess(decodedText) { 
+    // processScan(code, source) -> source='camera'
+    processScan(decodedText, 'camera'); 
+}
 
 renderLogs();
 </script>
