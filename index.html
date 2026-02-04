@@ -2,167 +2,66 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>S4 Inventory (Modern UI)</title>
+<title>S4 Stock</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Sarabun:wght@400;500;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
 
 <style>
-/* ====== THEME CONFIG ====== */
-:root { 
-    --primary: #2563eb; 
-    --primary-dark: #1e40af;
-    --secondary: #64748b;
-    --success: #10b981;
-    --danger: #ef4444;
-    --bg-body: #f1f5f9; 
-    --bg-card: #ffffff;
-    --text-main: #1e293b; 
-    --text-muted: #64748b;
-    --border: #e2e8f0; 
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --radius: 12px;
-}
+/* ====== THEME ====== */
+:root { --primary: #0f172a; --accent: #2563eb; --bg-body: #f8fafc; --text-main: #334155; --border: #e2e8f0; }
+body { font-family: 'Inter', 'Sarabun', sans-serif; background: var(--bg-body); color: var(--text-main); margin: 0; padding: 0; line-height: 1.5; }
 
-body { font-family: 'Inter', 'Sarabun', sans-serif; background: var(--bg-body); color: var(--text-main); margin: 0; padding: 0; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+header { background: var(--primary); color: white; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+.brand { font-weight: 700; font-size: 1.25rem; }
 
-/* HEADER */
-header { 
-    background: white; 
-    padding: 0.8rem 1.5rem; 
-    display: flex; justify-content: space-between; align-items: center; 
-    position: sticky; top: 0; z-index: 100; 
-    box-shadow: var(--shadow-sm); 
-    border-bottom: 1px solid var(--border);
-}
-.brand { 
-    font-weight: 800; font-size: 1.25rem; 
-    background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: flex; align-items: center; gap: 8px;
-}
-.status-badge {
-    font-size: 0.75rem; font-weight: 600; 
-    background: #ecfdf5; color: var(--success); 
-    padding: 4px 12px; border-radius: 20px; 
-    border: 1px solid #a7f3d0;
-    display: flex; align-items: center; gap: 6px;
-}
-.status-dot {
-    width: 8px; height: 8px; background: var(--success); border-radius: 50%;
-    animation: pulse 2s infinite;
-}
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
+.container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; display: grid; grid-template-columns: 1fr 350px; gap: 24px; }
+@media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
 
-/* LAYOUT */
-.container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
-@media (max-width: 900px) { .container { grid-template-columns: 1fr; margin-top: 1rem; } }
-
-/* CARDS */
-.card { 
-    background: var(--bg-card); border-radius: var(--radius); 
-    box-shadow: var(--shadow-md); border: 1px solid var(--border); 
-    overflow: hidden; margin-bottom: 24px; transition: transform 0.2s ease;
-}
-.card:hover { transform: translateY(-2px); }
-.card-header { 
-    padding: 1rem 1.5rem; background: white; 
-    border-bottom: 1px solid var(--border); 
-    font-weight: 700; color: var(--text-main); font-size: 1rem;
-    display: flex; justify-content: space-between; align-items: center;
-}
+.card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; }
+.card-header { padding: 1rem 1.5rem; background: #fff; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
 .card-body { padding: 1.5rem; }
 
-/* INPUTS & FORMS */
-label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.85rem; color: var(--text-main); }
-input, select { 
-    width: 100%; padding: 0.75rem 1rem; 
-    border: 1px solid var(--border); border-radius: 8px; 
-    margin-bottom: 1rem; box-sizing: border-box; 
-    font-size: 0.95rem; font-family: 'Sarabun', sans-serif;
-    transition: all 0.2s; background: #f8fafc;
-}
-input:focus, select:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+input, select { width: 100%; padding: 0.85rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; box-sizing: border-box; font-size: 1rem; font-family: 'Sarabun', sans-serif;}
+label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; color: #64748b; }
 
-.input-group { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
-.input-wrapper { flex: 1; text-align: center; }
-.input-label { font-size: 0.75rem; color: var(--text-muted); margin-top: -8px; margin-bottom: 8px; font-weight: 500;}
+.btn { width: 100%; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; color: white; font-size: 0.95rem; display: flex; justify-content: center; align-items: center; gap: 8px; }
+.btn-primary { background: var(--accent); } .btn-dark { background: var(--primary); }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: #64748b; width: auto; padding: 0.4rem 1rem; font-size: 0.85rem; }
+.btn-scan { background: #10b981; width: auto; padding: 0 1.5rem; }
 
-/* BUTTONS */
-.btn { 
-    width: 100%; padding: 0.75rem; border: none; border-radius: 8px; 
-    font-weight: 600; cursor: pointer; color: white; font-size: 0.95rem; 
-    display: flex; justify-content: center; align-items: center; gap: 8px;
-    transition: filter 0.2s;
-}
-.btn:hover { filter: brightness(110%); }
-.btn:active { transform: scale(0.98); }
-
-.btn-primary { background: linear-gradient(to right, var(--primary), #3b82f6); box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); }
-.btn-dark { background: #1e293b; color: #e2e8f0; }
-.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); width: auto; padding: 0.4rem 1rem; font-size: 0.8rem; border-radius: 6px; }
-.btn-outline:hover { background: #f1f5f9; color: var(--text-main); }
-.btn-scan { background: var(--success); width: auto; padding: 0 1.5rem; }
-
-/* TABLE */
-.table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+.table-responsive { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
-th { background: #f8fafc; color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #f8fafc; }
+th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+th { background: #f8fafc; color: #64748b; font-weight: 600; }
+.code-text { font-family: 'Roboto Mono', monospace; font-weight: 700; color: var(--primary); }
+.badge { padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; }
+.badge-in { background: #dcfce7; color: #166534; } .badge-out { background: #fee2e2; color: #991b1b; }
 
-.code-text { font-family: 'Roboto Mono', monospace; font-weight: 600; color: var(--primary); font-size: 0.85rem; }
-.badge { padding: 4px 10px; border-radius: 20px; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.badge-in { background: #dcfce7; color: #166534; } 
-.badge-out { background: #fee2e2; color: #991b1b; }
-
-/* CAMERA & PREVIEW */
-#reader { width: 100%; border-radius: 12px; overflow: hidden; margin-top: 15px; display: none; border: 2px solid var(--primary); box-shadow: var(--shadow-md); }
-#scanFeedback { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 2000; font-weight: 600; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: max-content; max-width: 90%; }
-#debugLine { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; font-family: 'Roboto Mono', monospace; }
-
-/* QR PREVIEW (UI Only) */
-.labels-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 15px; max-height: 400px; overflow-y: auto; padding: 4px; }
-.label-item { 
-    background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px; 
-    text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; 
-    min-height: 160px; transition: all 0.2s;
-}
-.label-item:hover { border-color: var(--primary); box-shadow: var(--shadow-sm); }
+/* QR Preview */
+.labels-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; margin-top: 10px; }
+.label-item { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 10px 5px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 180px; }
+.qr-code-box { margin: 5px auto; flex-shrink: 0; }
 .qr-code-box img { display: block; margin: 0 auto; }
-.lbl-name { font-weight: 700; color: var(--text-main); font-size: 0.85rem; line-height: 1.3; width: 100%; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; height: 2.6em; word-break: break-word; }
-.lbl-code { font-family: 'Roboto Mono', monospace; font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-top: 8px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
 
-/* ====== PRINT ENGINE (DO NOT TOUCH - KEEPING YOUR SETTINGS) ====== */
+/* Text Fixes */
+.lbl-name { font-weight: 700; color: var(--primary); font-size: 0.85rem; line-height: 1.2; width: 100%; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; height: 2.4em; word-break: break-word; }
+.lbl-code { font-family: 'Roboto Mono', monospace; font-size: 0.75rem; color: #64748b; font-weight: 600; margin-top: 5px; }
+
+#reader { width: 100%; border-radius: 12px; overflow: hidden; margin-top: 20px; display: none; border: 2px solid var(--accent); }
+#scanFeedback { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 2000; font-weight: 600; text-align: center; width: 80%; }
+#debugLine { font-size: 0.75rem; color: #ef4444; margin-top: 5px; min-height: 1.2em; font-family: monospace; }
+
 @media print {
     body { background: white; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     header, .container, #scanFeedback, #reader { display: none !important; }
     #printArea { display: block !important; position: absolute; top: 0; left: 0; width: 100%; margin: 0; padding: 0; }
-    
     .mode-a4 .labels-container { display: grid !important; grid-template-columns: repeat(5, 1fr) !important; gap: 10px !important; padding: 10px !important; }
     .mode-a4 .label-item { border: 1px dashed #cbd5e1 !important; break-inside: avoid !important; margin: 0 !important; height: auto !important; box-shadow: none !important; }
-    
     .mode-single .labels-container { display: block !important; }
-    .mode-single .label-item { 
-        border: none !important; 
-        box-shadow: none !important;
-        margin: 0 !important;
-        page-break-after: always !important; 
-        break-after: page !important; 
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-        align-items: center !important;
-    }
+    .mode-single .label-item { border: none !important; page-break-after: always !important; margin: 0 auto !important; width: 100% !important; height: 100% !important; display: flex; justify-content: center; align-items: center; }
 }
 </style>
 </head>
@@ -170,20 +69,18 @@ tr:hover td { background: #f8fafc; }
 
 <header>
     <div class="brand">📦 S4 Inventory</div>
-    <div class="status-badge"><div class="status-dot"></div> Online System</div>
+    <div style="font-size:0.85rem; background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:20px;">🟢 Online</div>
 </header>
 
 <div class="container">
     
     <div>
         <div class="card">
-            <div class="card-header">
-                <span>📷 สแกนสินค้า</span>
-            </div>
+            <div class="card-header">📷 จุดสแกน</div>
             <div class="card-body">
                 <div style="display:flex; gap:10px; margin-bottom:5px;">
                     <div style="flex-grow:1;">
-                        <input id="barcode" placeholder="คลิกช่องนี้เพื่อเริ่มยิงบาร์โค้ด..." autofocus autocomplete="off">
+                        <input id="barcode" placeholder="คลิกแล้วยิง QR..." autofocus autocomplete="off">
                     </div>
                     <button class="btn btn-scan" id="btnCamToggle" onclick="toggleCamera()">กล้อง</button>
                 </div>
@@ -193,15 +90,9 @@ tr:hover td { background: #f8fafc; }
         </div>
 
         <div class="card">
-            <div class="card-header">
-                <span>📋 ประวัติล่าสุด</span>
-                <button class="btn-outline" onclick="clearData()">ล้างประวัติ</button>
-            </div>
+            <div class="card-header">📋 ประวัติ <button class="btn-outline" onclick="clearData()">ล้าง</button></div>
             <div class="table-responsive">
-                <table>
-                    <thead><tr><th width="25%">เวลา</th><th width="55%">สินค้า</th><th width="20%">สถานะ</th></tr></thead>
-                    <tbody id="stock"></tbody>
-                </table>
+                <table><thead><tr><th width="25%">เวลา</th><th width="55%">สินค้า</th><th width="20%">สถานะ</th></tr></thead><tbody id="stock"></tbody></table>
             </div>
         </div>
     </div>
@@ -210,105 +101,79 @@ tr:hover td { background: #f8fafc; }
         <div class="card" style="position:sticky; top:100px;">
             <div class="card-header">🖨️ สร้าง QR Code</div>
             <div class="card-body">
-                
-                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px;">
-                    <label style="color:var(--primary); margin-bottom:10px;">ตั้งค่าการพิมพ์</label>
+                <div class="settings-box">
+                    <label>รูปแบบการพิมพ์</label>
                     <select id="printMode" onchange="updatePrintConfig()">
-                        <option value="Single">🧻 สติ๊กเกอร์ม้วน (Thermal)</option>
-                        <option value="A4">📄 กระดาษ A4 (ตาราง 5x)</option>
+                        <option value="A4">📄 A4 (ตาราง 5x)</option>
+                        <option value="Single">🧻 สติ๊กเกอร์ม้วน (เดี่ยว)</option>
                     </select>
-                    
-                    <div id="sizeInputs" class="input-group">
-                        <div class="input-wrapper">
-                            <input id="pWidth" type="number" value="40" onchange="updatePrintConfig()">
-                            <div class="input-label">กว้าง (มม.)</div>
-                        </div>
-                        <div style="padding-top:10px; color:#cbd5e1;">x</div>
-                        <div class="input-wrapper">
-                            <input id="pHeight" type="number" value="65" onchange="updatePrintConfig()">
-                            <div class="input-label">สูง (มม.)</div>
-                        </div>
+                    <div id="sizeInputs" class="row" style="display:none; align-items: flex-end;">
+                        <div class="col"><label>กว้าง</label><input id="pWidth" type="number" value="50"></div>
+                        <div class="col"><label>สูง</label><input id="pHeight" type="number" value="50"></div>
                     </div>
                 </div>
-                
-                <div class="row" style="display:flex; gap:10px;">
-                    <div style="flex:2">
-                        <label>รหัสสินค้า</label>
-                        <input id="genName" placeholder="เช่น s-an6-4mm">
-                    </div>
-                    <div style="flex:1">
-                        <label>จำนวน</label>
-                        <input id="genQty" type="number" value="10">
-                    </div>
+                <div class="row">
+                    <div class="col-2"><label>รหัสสินค้า Product_List เท่านั้น</label><input id="genName" placeholder="เช่น 18802"></div>
+                    <div class="col"><label>จำนวน</label><input id="genQty" type="number" value="10"></div>
                 </div>
-
-                <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">
-                    <button class="btn btn-primary" onclick="requestBarcodes()">✨ สร้าง QR Code</button>
-                    <button class="btn btn-dark" onclick="window.print()">🖨️ สั่งปริ้นทันที</button>
+                <div class="row" style="margin-top:10px;">
+                    <button class="btn btn-primary" onclick="requestBarcodes()">สร้าง QR</button>
+                    <button class="btn btn-dark" onclick="window.print()">สั่งปริ้น</button>
                 </div>
-
             </div>
         </div>
     </div>
 
 </div>
 
-<div id="printArea"><div id="labelsContainer" class="labels-container"></div></div>
-<div id="emptyMsg" style="text-align:center; padding:50px; color:#cbd5e1; display:none;"></div>
-
+<div id="printArea"><div id="labelsContainer" class="labels-container"></div><div id="emptyMsg" style="text-align:center; padding:50px; color:#cbd5e1;">(ยังไม่มี QR Code)</div></div>
 <div id="scanFeedback"></div>
 
 <script>
-// --- CORE LOGIC (UNCHANGED) ---
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxlC36QoUV37QvM6fazvGOlf5daaHrmdVTjQuHqpRnX_kTOFt7q3JbjwZ7H-rHBM00/exec';
-const SEPARATOR = "___"; 
+const SEPARATOR = "___"; // 🔥 เปลี่ยนตัวคั่นเป็น ___ (ขีดล่าง 3 ตัว) ปลอดภัยสุด
 let logs = JSON.parse(localStorage.getItem('logs_s4') || '[]');
 const els = { barcode: document.getElementById('barcode'), stock: document.getElementById('stock'), container: document.getElementById('labelsContainer'), printArea: document.getElementById('printArea'), feedback: document.getElementById('scanFeedback'), debug: document.getElementById('debugLine') };
 
+// Settings
 if(localStorage.getItem('print_w')) document.getElementById('pWidth').value = localStorage.getItem('print_w');
 if(localStorage.getItem('print_h')) document.getElementById('pHeight').value = localStorage.getItem('print_h');
 if(localStorage.getItem('print_mode')) document.getElementById('printMode').value = localStorage.getItem('print_mode');
 
 function updatePrintConfig(){
     const mode = document.getElementById('printMode').value;
-    const w = parseFloat(document.getElementById('pWidth').value) || 50;
-    const h = parseFloat(document.getElementById('pHeight').value) || 30;
-    
+    const w = document.getElementById('pWidth').value || 50;
+    const h = document.getElementById('pHeight').value || 50;
     document.getElementById('sizeInputs').style.display = (mode === 'Single') ? 'flex' : 'none';
     els.printArea.className = (mode === 'Single') ? 'mode-single' : 'mode-a4';
     
-    // Safety Cut -2mm logic preserved
-    const safetyH = h - 2; 
-
     let styleTag = document.getElementById('dynamic-page-size');
     if(styleTag) styleTag.remove();
     styleTag = document.createElement('style'); styleTag.id = 'dynamic-page-size';
-    
-    if(mode === 'Single'){ 
-        styleTag.innerHTML = `
-            @media print { 
-                @page { size: ${w}mm ${h}mm; margin: 0; } 
-                html, body { width: ${w}mm; height: ${h}mm; margin: 0; padding: 0; overflow: hidden; }
-                .label-item { width: ${w}mm !important; height: ${safetyH}mm !important; }
-            }
-        `; 
-    } else { 
-        styleTag.innerHTML = `@media print { @page { size: A4; margin: 0.5cm; } }`; 
-    }
+    styleTag.innerHTML = (mode === 'Single') ? `@media print { @page { size: ${w}mm ${h}mm; margin: 0; } }` : `@media print { @page { size: A4; margin: 0.5cm; } }`;
     document.head.appendChild(styleTag);
     localStorage.setItem('print_mode', mode); localStorage.setItem('print_w', w); localStorage.setItem('print_h', h);
 }
+document.getElementById('pWidth').addEventListener('input', updatePrintConfig);
+document.getElementById('pHeight').addEventListener('input', updatePrintConfig);
 updatePrintConfig();
 
-let inputBufferTimer; let isBusy = false; let isCameraCooldown = false;
+// ================= INPUT LOGIC (Hybrid: Enter + Delay) =================
+let inputBufferTimer; 
+let isBusy = false; 
+let isCameraCooldown = false;
 
+// 1. ถ้าเครื่องยิงกด Enter (ส่วนใหญ่กด) -> ทำงานทันที!
 els.barcode.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-        e.preventDefault(); clearTimeout(inputBufferTimer);
+        e.preventDefault();
+        clearTimeout(inputBufferTimer); // ยกเลิกการรอ
         let val = els.barcode.value.trim();
         if(val.length > 1) processScan(val, 'input_enter');
     }
 });
+
+// 2. ถ้าเครื่องยิงไม่กด Enter (พิมพ์รัวๆ) -> รอ 0.5 วิ แล้วทำงาน
 els.barcode.addEventListener('input', (e) => {
     if(isBusy) { els.barcode.value = ''; return; }
     clearTimeout(inputBufferTimer);
@@ -318,24 +183,31 @@ els.barcode.addEventListener('input', (e) => {
     }, 500); 
 });
 
+// ================= PROCESS SCAN (NEW SEPARATOR) =================
 async function processScan(code, source){
     if(isBusy) return;
     if(source === 'camera' && isCameraCooldown) return;
 
+    // Decode & Debug
     let raw = decodeURIComponent(code); 
-    els.debug.innerText = `กำลังอ่าน: ${raw}`;
+    els.debug.innerText = `อ่านได้: ${raw}`; // 🔥 โชว์ให้เห็นว่าอ่านอะไรได้
     
     isBusy = true; 
     let productKey = raw;
+    
+    // 🔥 SPLIT LOGIC ใหม่: ใช้ ___
+    // s-an6-4mm___001 -> เจอ ___ -> ตัดเหลือ s-an6-4mm
+    // s-an6-4mm       -> ไม่เจอ   -> ใช้ s-an6-4mm เหมือนเดิม
     if (raw.includes(SEPARATOR)) {
         productKey = raw.split(SEPARATOR)[0];
     } else {
+        // Fallback ของเก่า (เผื่อใครเอาโค้ดเก่ามายิง)
         if(raw.length > 5 && !isNaN(raw) && !raw.includes('-')) {
              productKey = raw.substring(0, raw.length - 3); 
         }
     }
 
-    showFeedback('⏳ กำลังตรวจสอบ...', '#64748b'); // Neutral color
+    showFeedback('⏳ ตรวจสอบ...', '#334155');
     els.barcode.disabled = true;
 
     try {
@@ -343,18 +215,21 @@ async function processScan(code, source){
         const data = await res.json();
 
         if(data.status !== 'success'){ 
-            if(productKey !== raw){ 
+            if(productKey !== raw){ // Try Full Code
                  const res2 = await fetch(SHEET_URL, { method: 'POST', body: JSON.stringify({ actionType: 'GET_PRODUCT', code: raw, fullBarcode: raw }) });
                  const data2 = await res2.json();
                  if(data2.status === 'success'){ logSuccess(data2, raw, source); return; }
             }
-            showFeedback('❌ ไม่พบสินค้าในระบบ', '#ef4444'); els.debug.innerText = "สถานะ: ไม่พบสินค้า";
+            showFeedback('❌ ไม่พบสินค้า', '#ef4444'); 
+            els.debug.innerText += " (ไม่พบในฐานข้อมูล)";
         } else {
             logSuccess(data, raw, source);
         }
-    } catch (err) { showFeedback('⚠️ เชื่อมต่อไม่ได้', '#ef4444'); }
+    } catch (err) { showFeedback('⚠️ Error', '#ef4444'); }
     finally {
-        isBusy = false; els.barcode.value = ''; els.barcode.disabled = false;
+        isBusy = false;
+        els.barcode.value = ''; 
+        els.barcode.disabled = false;
         if(source.includes('input')) { els.barcode.focus(); } else { els.barcode.blur(); }
         if(source === 'camera') { isCameraCooldown = true; setTimeout(() => { isCameraCooldown = false; }, 3000); }
     }
@@ -368,7 +243,7 @@ function logSuccess(data, raw, source){
     localStorage.setItem('logs_s4', JSON.stringify(logs));
     renderLogs();
     
-    let color = action==='IN'?'#10b981':'#f59e0b'; // Green or Orange
+    let color = action==='IN'?'#10b981':'#ef4444';
     let msg = `✅ ${action}: ${data.full_name}`;
     if(source === 'camera') msg += "<br><small>(พักกล้อง 3 วิ)</small>";
     showFeedback(msg, color);
@@ -376,57 +251,63 @@ function logSuccess(data, raw, source){
 }
 
 function renderLogs(){
-    if(logs.length === 0) { els.stock.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#94a3b8;">ยังไม่มีประวัติการสแกน</td></tr>'; return; }
-    els.stock.innerHTML = logs.map(l => `<tr><td style="color:#64748b; font-size:0.8rem;">${new Date(l.time).toLocaleTimeString('th-TH')}</td><td><div style="font-weight:600; color:#1e293b;">${l.name}</div><div class="code-text">${l.barcode}</div></td><td><span class="badge ${l.action === 'IN' ? 'badge-in' : 'badge-out'}">${l.action}</span></td></tr>`).join('');
+    if(logs.length === 0) { els.stock.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#94a3b8;">ยังไม่มีประวัติ</td></tr>'; return; }
+    els.stock.innerHTML = logs.map(l => `<tr><td style="color:#64748b; font-size:0.85rem;">${new Date(l.time).toLocaleTimeString('th-TH')}</td><td><div style="font-weight:600; color:#0f172a;">${l.name}</div><div class="code-text">${l.barcode}</div></td><td><span class="badge ${l.action === 'IN' ? 'badge-in' : 'badge-out'}">${l.action}</span></td></tr>`).join('');
 }
 function clearData(){ if(confirm('ยืนยันล้างประวัติ?')){ logs=[]; localStorage.removeItem('logs_s4'); renderLogs(); } }
 function showFeedback(text, color){ els.feedback.innerHTML = text; els.feedback.style.background = color; els.feedback.style.opacity = 1; els.feedback.style.bottom = "50px"; setTimeout(() => { els.feedback.style.opacity = 0; els.feedback.style.bottom = "30px"; }, 2000); }
 
+// ================= 🔥 QR GENERATOR (Use ___ separator) 🔥 =================
 async function requestBarcodes(){
     const name = document.getElementById('genName').value.trim();
     const qty = parseInt(document.getElementById('genQty').value);
-    if(!name || qty <= 0) return alert('กรุณากรอกข้อมูลให้ครบถ้วน');
-    showFeedback('⏳ กำลังสร้าง QR...', '#64748b');
+    if(!name || qty <= 0) return alert('กรอกข้อมูลให้ครบ');
+    showFeedback('⏳ สร้าง QR...', '#334155');
+    document.getElementById('emptyMsg').style.display = 'none';
     const res = await fetch(SHEET_URL, { method: 'POST', body: JSON.stringify({ actionType: 'GENERATE', name: name, qty: qty }) });
     const data = await res.json();
-    if(data.status === 'success'){ generateLabels(name, data.start, data.end); showFeedback('✅ เรียบร้อย พร้อมพิมพ์', '#10b981'); }
+    if(data.status === 'success'){ generateLabels(name, data.start, data.end); showFeedback('✅ เรียบร้อย', '#10b981'); }
 }
 
 function generateLabels(name, start, end){
     els.container.innerHTML = '';
     const mode = document.getElementById('printMode').value;
-    const w = parseFloat(document.getElementById('pWidth').value);
-    const qrSize = (mode === 'Single') ? (w * 3.78) * 0.7 : 80;
-
+    const w = document.getElementById('pWidth').value;
+    const h = document.getElementById('pHeight').value;
     updatePrintConfig(); 
     for(let i = start; i <= end; i++){
         const num = String(i).padStart(3, '0');
+        
+        // 🔥 MACHINE CODE: ใช้ ___ เป็นตัวคั่น (ปลอดภัยสุด)
         const machineCode = `${name}${SEPARATOR}${num}`; 
         const humanText = `${name} (${num})`;
         
         const div = document.createElement('div');
         div.className = 'label-item';
-        if(mode === 'Single'){ div.style.width = w + 'mm'; div.style.height = (parseFloat(document.getElementById('pHeight').value)-2) + 'mm'; }
+        if(mode === 'Single'){ div.style.width = w + 'mm'; div.style.height = h + 'mm'; }
         
         div.innerHTML = `<div class="lbl-name">${name}</div><div id="qr_${i}" class="qr-code-box"></div><div class="lbl-code">${humanText}</div>`;
         els.container.appendChild(div);
         
         new QRCode(document.getElementById(`qr_${i}`), { 
-            text: unescape(encodeURIComponent(machineCode)), 
-            width: qrSize, height: qrSize, correctLevel : QRCode.CorrectLevel.L
+            text: unescape(encodeURIComponent(machineCode)), // รองรับภาษาไทย
+            width: (mode==='Single'?90:80), 
+            height: (mode==='Single'?90:80),
+            correctLevel : QRCode.CorrectLevel.L
         });
     }
 }
 
+// Camera Engine
 let html5QrcodeScanner = null;
 function toggleCamera(){
     const reader = document.getElementById('reader');
     const btn = document.getElementById('btnCamToggle');
     if(html5QrcodeScanner){
-        html5QrcodeScanner.clear().then(_ => { reader.style.display = 'none'; btn.innerText = 'กล้อง'; btn.style.background = '#10b981'; html5QrcodeScanner = null; });
+        html5QrcodeScanner.clear().then(_ => { reader.style.display = 'none'; btn.innerText = 'เปิดกล้อง'; btn.style.background = '#10b981'; html5QrcodeScanner = null; });
     } else {
         els.barcode.blur(); 
-        reader.style.display = 'block'; btn.innerText = 'ปิด'; btn.style.background = '#ef4444';
+        reader.style.display = 'block'; btn.innerText = 'ปิดกล้อง'; btn.style.background = '#ef4444';
         html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
         html5QrcodeScanner.render(onScanSuccess);
     }
