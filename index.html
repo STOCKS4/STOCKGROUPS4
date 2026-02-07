@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>S4 Stock (Mode + Sound)</title>
+<title>S4 Stock</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -161,7 +161,7 @@ function setMode(mode) {
     // เปลี่ยนสี Debug line ตามโหมด
     if(mode === 'IN') els.debug.style.color = '#10b981';
     else els.debug.style.color = '#ef4444';
-    els.debug.innerText = `โหมด: ${mode === 'IN' ? 'รับเข้า (ห้ามยิงซ้ำ)' : 'เบิกออก (ห้ามยิงซ้ำ)'}`;
+    els.debug.innerText = `โหมด: ${mode === 'IN' ? 'รับเข้า ' : 'เบิกออก '}`;
     els.barcode.focus();
 }
 
@@ -293,14 +293,14 @@ async function processScan(code, source){
 function checkModeAndLog(data, raw, source) {
     // ถ้าโหมดรับเข้า (IN) แต่ของสถานะเป็น IN อยู่แล้ว -> ห้าม!
     if (currentMode === 'IN' && data.last_action === 'IN') {
-        showFeedback('⚠️ สินค้านี้รับเข้าแล้ว! (ห้ามซ้ำ)', '#ef4444');
+        showFeedback('⚠️ สินค้านี้รับเข้าแล้ว! (ซ้ำ)', '#ef4444');
         playBeep('error');
         return;
     }
     
     // ถ้าโหมดเบิกออก (OUT) แต่ของสถานะเป็น OUT อยู่แล้ว -> ห้าม!
     if (currentMode === 'OUT' && data.last_action === 'OUT') {
-        showFeedback('⚠️ สินค้านี้ออกไปแล้ว! (ห้ามซ้ำ)', '#ef4444');
+        showFeedback('⚠️ สินค้านี้ออกไปแล้ว! (ซ้ำ)', '#ef4444');
         playBeep('error');
         return;
     }
@@ -386,3 +386,4 @@ renderLogs();
 </script>
 </body>
 </html>
+
