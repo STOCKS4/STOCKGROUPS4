@@ -231,7 +231,7 @@ async function processScan(code, source){
         els.barcode.value = ''; 
         els.barcode.disabled = false;
         if(source.includes('input')) { els.barcode.focus(); } else { els.barcode.blur(); }
-        if(source === 'camera') { isCameraCooldown = true; setTimeout(() => { isCameraCooldown = false; }, 3000); }
+        if(source === 'camera') { isCameraCooldown = true; setTimeout(() => { isCameraCooldown = false; }, 1000); }
     }
 }
 
@@ -318,3 +318,4 @@ renderLogs();
 </script>
 </body>
 </html>
+
