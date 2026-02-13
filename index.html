@@ -150,7 +150,6 @@ const SEPARATOR = "___";
 let logs = JSON.parse(localStorage.getItem('logs_s4') || '[]');
 const els = { barcode: document.getElementById('barcode'), stock: document.getElementById('stock'), container: document.getElementById('labelsContainer'), printArea: document.getElementById('printArea'), feedback: document.getElementById('scanFeedback'), debug: document.getElementById('debugLine') };
 
-// 🔥 NEW: Current Mode Variable
 let currentMode = 'IN';
 
 function setMode(mode) {
@@ -158,14 +157,12 @@ function setMode(mode) {
     document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(mode === 'IN' ? 'btn-in' : 'btn-out').classList.add('active');
     
-    // เปลี่ยนสี Debug line ตามโหมด
     if(mode === 'IN') els.debug.style.color = '#10b981';
     else els.debug.style.color = '#ef4444';
-    els.debug.innerText = `โหมด: ${mode === 'IN' ? 'รับเข้า ' : 'เบิกออก '}`;
+    els.debug.innerText = `โหมด: ${mode === 'IN' ? 'รับเข้า (ห้ามยิงซ้ำ)' : 'เบิกออก (ห้ามยิงซ้ำ)'}`;
     els.barcode.focus();
 }
 
-// 🔥 NEW: Sound System (สร้างเสียง Beep ด้วย Code ไม่ต้องใช้ไฟล์)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playBeep(type) {
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -176,14 +173,12 @@ function playBeep(type) {
     gainNode.connect(audioCtx.destination);
     
     if (type === 'success') {
-        // เสียงติ๊ด (สูง สั้น)
         oscillator.type = 'sine';
         oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime);
         gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
         oscillator.start();
         oscillator.stop(audioCtx.currentTime + 0.1);
     } else if (type === 'error') {
-        // เสียงตื๊ด (ต่ำ ยาว)
         oscillator.type = 'sawtooth';
         oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
         gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
@@ -238,7 +233,7 @@ els.barcode.addEventListener('input', (e) => {
     }, 500); 
 });
 
-// ================= PROCESS SCAN (Mode Logic Added) =================
+// ================= PROCESS SCAN =================
 async function processScan(code, source){
     if(isBusy) return;
     if(source === 'camera' && isCameraCooldown) return;
@@ -274,7 +269,7 @@ async function processScan(code, source){
                  }
             }
             showFeedback('❌ ไม่พบสินค้า', '#ef4444'); 
-            playBeep('error'); // เสียงผิดพลาด
+            playBeep('error');
             els.debug.innerText += " (ไม่พบในฐานข้อมูล)";
         } else {
             checkModeAndLog(data, raw, source);
@@ -285,32 +280,26 @@ async function processScan(code, source){
         els.barcode.value = ''; 
         els.barcode.disabled = false;
         if(source.includes('input')) { els.barcode.focus(); } else { els.barcode.blur(); }
-        if(source === 'camera') { isCameraCooldown = true; setTimeout(() => { isCameraCooldown = false; }, 1000); }
+        // 🔥 iOS Quick Cooldown (800ms)
+        if(source === 'camera') { isCameraCooldown = true; setTimeout(() => { isCameraCooldown = false; }, 800); }
     }
 }
 
-// 🔥 NEW: Check Mode Logic
 function checkModeAndLog(data, raw, source) {
-    // ถ้าโหมดรับเข้า (IN) แต่ของสถานะเป็น IN อยู่แล้ว -> ห้าม!
     if (currentMode === 'IN' && data.last_action === 'IN') {
         showFeedback('⚠️ สินค้านี้รับเข้าแล้ว! (ซ้ำ)', '#ef4444');
         playBeep('error');
         return;
     }
-    
-    // ถ้าโหมดเบิกออก (OUT) แต่ของสถานะเป็น OUT อยู่แล้ว -> ห้าม!
     if (currentMode === 'OUT' && data.last_action === 'OUT') {
         showFeedback('⚠️ สินค้านี้ออกไปแล้ว! (ซ้ำ)', '#ef4444');
         playBeep('error');
         return;
     }
-
-    // ถ้าผ่านเงื่อนไข -> บันทึก
     logSuccess(data, raw, source);
 }
 
 function logSuccess(data, raw, source){
-    // บังคับ Action ให้ตรงตามโหมดที่เลือก
     let action = currentMode; 
     
     fetch(SHEET_URL, { method: 'POST', body: JSON.stringify({ actionType: 'LOG', barcode: raw, name: data.full_name, action: action, fixedCode: data.code }) });
@@ -321,9 +310,9 @@ function logSuccess(data, raw, source){
     
     let color = action==='IN'?'#10b981':'#ef4444';
     let msg = `✅ ${action}: ${data.full_name}`;
-    if(source === 'camera') msg += "<br><small>(พักกล้อง 3 วิ)</small>";
+    if(source === 'camera') msg += "<br><small>(พัก 0.8 วิ)</small>";
     showFeedback(msg, color);
-    playBeep('success'); // เสียงสำเร็จ
+    playBeep('success');
     els.debug.innerText = "สถานะ: พร้อมใช้งาน";
 }
 
@@ -365,26 +354,45 @@ function generateLabels(name, start, end){
     }
 }
 
+// 🔥 iOS FIXED CAMERA ENGINE
 let html5QrcodeScanner = null;
 function toggleCamera(){
     const reader = document.getElementById('reader');
     const btn = document.getElementById('btnCamToggle');
+    
     if(html5QrcodeScanner){
-        html5QrcodeScanner.clear().then(_ => { reader.style.display = 'none'; btn.innerText = 'เปิดกล้อง'; btn.style.background = '#10b981'; html5QrcodeScanner = null; });
+        html5QrcodeScanner.clear().then(_ => { 
+            reader.style.display = 'none'; 
+            btn.innerText = 'เปิดกล้อง'; 
+            btn.style.background = '#10b981'; 
+            html5QrcodeScanner = null; 
+        }).catch(err => alert("ปิดกล้องไม่ได้: " + err));
     } else {
         els.barcode.blur(); 
-        reader.style.display = 'block'; btn.innerText = 'ปิดกล้อง'; btn.style.background = '#ef4444';
-        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        html5QrcodeScanner.render(onScanSuccess);
+        reader.style.display = 'block'; 
+        btn.innerText = 'ปิดกล้อง'; 
+        btn.style.background = '#ef4444';
+        
+        // 🔥 CONFIG สำหรับ iOS: บังคับกล้องหลัง + ปรับอัตราส่วน
+        const config = { 
+            fps: 10, 
+            qrbox: 250,
+            aspectRatio: 1.0,
+            videoConstraints: { facingMode: "environment" } 
+        };
+        
+        html5QrcodeScanner = new Html5QrcodeScanner("reader", config);
+        
+        // iOS requires user interaction, sometimes permission fails first time
+        html5QrcodeScanner.render(onScanSuccess, (error) => {
+            // Error callback: ignore console spam
+        });
     }
 }
 function onScanSuccess(decodedText) { processScan(decodedText, 'camera'); }
 
-// Set initial mode
 setMode('IN');
 renderLogs();
 </script>
 </body>
 </html>
-
-
